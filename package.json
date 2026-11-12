@@ -14,6 +14,7 @@
     "lint": "biome check --error-on-warnings . && bun run scripts/quality/check-tests.ts",
     "check": "bun run lint && bun run typecheck",
     "workflow:lint": "bun run scripts/quality/check-workflows.ts",
+    "hooks:install": "bash scripts/quality/install-hooks.sh",
     "test": "bun run build && vitest run tests",
     "test:coverage": "vitest run tests/calendar.test.ts tests/quality.test.ts --coverage",
     "test:integration": "bun run build && vitest run tests/archive.test.ts tests/production.test.ts",
