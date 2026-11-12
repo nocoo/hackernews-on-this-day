@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -34,6 +35,8 @@ export async function verifyDeployment({
   sleep = delay,
 }) {
   const release = validateManifest(sourceSha, manifest);
+  const version = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
+  if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error("Invalid package version");
   const month = now.getUTCMonth() + 1;
   const day = now.getUTCDate();
   const date = `month=${month}&day=${day}`;
@@ -48,6 +51,7 @@ export async function verifyDeployment({
         liveResponse.headers.get("cache-control") !== "no-store" ||
         live?.status !== "ok" ||
         live.component !== "hntoday" ||
+        live.version !== version ||
         live.revision !== sourceSha
       ) {
         throw new Error("Public liveness does not match the deployed revision");

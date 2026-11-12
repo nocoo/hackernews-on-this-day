@@ -1,6 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { chmod } from "node:fs/promises";
+import packageInfo from "../package.json" with { type: "json" };
 import { createArchiveFixture } from "../tests/fixtures/archive";
 
 const archive = await createArchiveFixture();
@@ -60,8 +61,18 @@ try {
   }
   if (live?.status !== 200 || live.headers.get("cache-control") !== "no-store")
     throw new Error("Container liveness unavailable");
-  const health = (await live.json()) as { status: string; component: string; revision: string };
-  if (health.status !== "ok" || health.component !== "hntoday" || health.revision !== revision)
+  const health = (await live.json()) as {
+    status: string;
+    component: string;
+    version: string;
+    revision: string;
+  };
+  if (
+    health.status !== "ok" ||
+    health.component !== "hntoday" ||
+    health.version !== packageInfo.version ||
+    health.revision !== revision
+  )
     throw new Error("Container revision mismatch");
   const page = await fetch(url, { signal: AbortSignal.timeout(10_000) });
   if (

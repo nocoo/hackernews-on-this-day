@@ -65,7 +65,7 @@ The deploy workflow verifies the running image digest, OCI revision and read-onl
 - `src/api/`: browser API client.
 - `server/`: HTTP API, validation and DuckDB queries; production also serves the built Vite assets.
 
-`GET /api/day?month=11&day=12` returns the per-year rankings; `GET /api/live` is a process liveness check reporting the component and optional `APP_REVISION`, not an archive-readiness check.
+`GET /api/day?month=11&day=12` returns the per-year rankings; `GET /api/live` is a process liveness check reporting the component, package version and optional `APP_REVISION`, not an archive-readiness check.
 
 ## License
 

@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import packageInfo from "../package.json" with { type: "json" };
 import { createArchiveFixture } from "./fixtures/archive";
 import { startFixtureServer } from "./fixtures/server";
 
@@ -34,7 +35,12 @@ describe("production server with an isolated Parquet archive", () => {
 
   it("queries real Parquet over HTTP and ranks only stories", async () => {
     const live = await fetch(`${server.url}/api/live`);
-    expect(await live.json()).toEqual({ status: "ok", component: "hntoday", revision: null });
+    expect(await live.json()).toEqual({
+      status: "ok",
+      component: "hntoday",
+      version: packageInfo.version,
+      revision: null,
+    });
     const response = await fetch(`${server.url}/api/day?month=11&day=12`);
     expect(response.status).toBe(200);
     const body = (await response.json()) as {

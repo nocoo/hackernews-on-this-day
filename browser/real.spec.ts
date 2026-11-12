@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import packageInfo from "../package.json" with { type: "json" };
 
 test("browses a real isolated Parquet archive through the production API", async ({ page }) => {
   const currentYear = new Date().getUTCFullYear();
@@ -8,6 +9,7 @@ test("browses a real isolated Parquet archive through the production API", async
   await page.goto("/");
   expect((await response).status()).toBe(200);
   await expect(page.locator(".chapter")).toHaveCount(15);
+  await expect(page.locator(".brand-t .version")).toHaveText(`v${packageInfo.version}`);
   await expect(page.locator(`#y${year} .lead-link`)).toHaveText(`Synthetic story ${year}`);
   await expect(page.locator(`#y${year} .lead-link`)).toHaveAttribute(
     "href",

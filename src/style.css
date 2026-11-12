@@ -77,6 +77,7 @@ main,.foot{position:relative;z-index:1}
   background:linear-gradient(145deg,#ff9448,#f25c05 62%,#d94a00);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 0 0 1px rgba(255,255,255,.12),0 6px 18px -6px var(--glow)}
 .brand-t{display:flex;align-items:center;gap:10px;font-size:14px;white-space:nowrap}
 .brand-t b{font-weight:600;letter-spacing:.01em}
+.brand-t .version{font:500 10px/1 var(--mono);letter-spacing:.03em;color:var(--muted);padding:4px 6px;border:1px solid var(--line);border-radius:999px}
 .brand-t i{width:1px;height:12px;background:var(--line-2)}
 .brand-t span{color:var(--muted)}
 .stepper{display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--surface) 70%,transparent);box-shadow:var(--shadow)}
@@ -313,7 +314,7 @@ main,.foot{position:relative;z-index:1}
 /* ───────────── Responsive ───────────── */
 @media (max-width:1180px){.rail{display:none}.insights{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:900px){
-  .brand-t b,.brand-t i{display:none}
+  .brand-t b,.brand-t i,.brand-t .version{display:none}
   .nav-in{grid-template-columns:auto 1fr auto}.stepper{justify-self:center}
   .doy .yearbar{display:none}
   .hero-foot{grid-template-columns:1fr}

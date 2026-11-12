@@ -48,6 +48,12 @@ jobs:
                 or image.get('Config', {}).get('Labels', {}).get('org.opencontainers.image.revision') != source
                 or 'APP_REVISION=' + source not in container['Config'].get('Env', [])):
             raise SystemExit('Running container does not match the verified image and revision')
+        version = subprocess.check_output(
+            ['docker', 'exec', 'hntoday-app', 'node', '-p', "JSON.parse(require('fs').readFileSync('/app/package.json')).version"],
+            text=True,
+        ).strip()
+        if not re.fullmatch(r'\d+\.\d+\.\d+', version):
+            raise SystemExit('Running image package version is invalid')
         mounts = [entry for entry in container.get('Mounts', []) if entry.get('Destination') == '/data']
         data = os.path.realpath(os.path.join(os.environ['DEPLOY_DIRECTORY'], 'data'))
         if (len(mounts) != 1 or mounts[0].get('Type') != 'bind' or mounts[0].get('RW') is not False
@@ -70,7 +76,7 @@ jobs:
                 live = json.loads(body)
                 if (status == 200 and headers.get('Cache-Control') == 'no-store'
                         and live.get('status') == 'ok' and live.get('component') == 'hntoday'
-                        and live.get('revision') == source):
+                        and live.get('revision') == source and live.get('version') == version):
                     break
             except (OSError, ValueError, urllib.error.URLError):
                 pass

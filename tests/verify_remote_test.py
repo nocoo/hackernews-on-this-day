@@ -16,6 +16,7 @@ DIGEST = "sha256:" + "b" * 64
 IMAGE = "ghcr.io/nocoo/hackernews-on-this-day"
 REFERENCE = IMAGE + "@" + DIGEST
 DIRECTORY = "/tmp/hntoday-remote-fixture"
+VERSION = json.loads(Path("package.json").read_text())["version"]
 
 
 class FixedDateTime(datetime.datetime):
@@ -47,8 +48,8 @@ class Response:
 
 
 def run_remote(*, writable=False, revision=SHA, image_revision=SHA, container_revision=SHA,
-               mounted_source=DIRECTORY + "/data", release_digest=DIGEST, missing=None,
-               stories=None, wrong_date=False):
+               live_version=VERSION, mounted_source=DIRECTORY + "/data", release_digest=DIGEST,
+               missing=None, stories=None, wrong_date=False):
     now = FixedDateTime.now(datetime.timezone.utc)
     releases = [{"image": IMAGE, "service": "web", "sourceSha": SHA, "digest": release_digest}]
     image = {"Id": "image-id", "RepoDigests": [REFERENCE], "Config": {"Labels": {"org.opencontainers.image.revision": image_revision}}}
@@ -69,11 +70,13 @@ def run_remote(*, writable=False, revision=SHA, image_revision=SHA, container_re
             return json.dumps([image])
         if command == ["docker", "inspect", "hntoday-app"]:
             return json.dumps([container])
+        if command[:4] == ["docker", "exec", "hntoday-app", "node"]:
+            return VERSION
         raise AssertionError("Unexpected Docker command")
 
     def request(url, **_kwargs):
         if url.endswith("/api/live"):
-            return Response({"status": "ok", "component": "hntoday", "revision": revision})
+            return Response({"status": "ok", "component": "hntoday", "version": live_version, "revision": revision})
         if "/api/day?" in url:
             return Response(archive)
         if url == "http://127.0.0.1:17065/":
@@ -98,6 +101,7 @@ class RemoteVerificationTests(unittest.TestCase):
     def test_rejects_wrong_revision_writable_or_incomplete_archive(self):
         for options in [
             {"revision": "c" * 40},
+            {"live_version": "0.0.0"},
             {"image_revision": "c" * 40},
             {"container_revision": "c" * 40},
             {"release_digest": "latest"},

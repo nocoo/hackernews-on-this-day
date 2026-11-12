@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import packageInfo from "../package.json" with { type: "json" };
 import { calendarYear, dateLabel, dayOfYear, shiftDay } from "./calendar";
 import { Atmosphere, Embers } from "./components/Atmosphere";
 import { Chapters } from "./components/Chapters";
@@ -200,6 +201,7 @@ export default function App() {
             </span>
             <span className="brand-t">
               <b>Hacker News</b>
+              <span className="version">v{packageInfo.version}</span>
               <i />
               <span>{text.brand}</span>
             </span>

@@ -4,6 +4,7 @@ A bilingual Vite/React site with a Node HTTP API and DuckDB reading a separately
 
 ## Invariants
 
+- The root `package.json` is the authoritative version; the site and `/api/live` derive their version from it. Keep `CHANGELOG.md` and release tags synchronized.
 - Keep `data/` and `results/` out of Git and Docker build contexts. Only `data/README.md` is tracked. Never use the development archive in tests; generated Parquet fixtures live in marked temporary directories.
 - The site presents snapshot scores, not historical front-page rankings. User-generated titles remain untranslated. Dates and ranking are UTC.
 - Preserve the prototype's visuals and motion, reduced-motion support, automatic language detection and direct language toggle. Views, viewmodels and API client remain separate.

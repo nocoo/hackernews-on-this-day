@@ -9,7 +9,8 @@
     "noEmit": true,
     "skipLibCheck": true,
     "types": ["node", "vite/client"],
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src",

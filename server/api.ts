@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { resolve } from "node:path";
+import packageInfo from "../package.json" with { type: "json" };
 import { getDayArchive } from "./archive.ts";
 
 function json(res: ServerResponse, status: number, body: unknown) {
@@ -15,7 +16,12 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse): Prom
     return true;
   }
   if (url.pathname === "/api/live") {
-    json(res, 200, { status: "ok", component: "hntoday", revision: process.env.APP_REVISION || null });
+    json(res, 200, {
+      status: "ok",
+      component: "hntoday",
+      version: packageInfo.version,
+      revision: process.env.APP_REVISION || null,
+    });
     return true;
   }
   if (url.pathname !== "/api/day") {
