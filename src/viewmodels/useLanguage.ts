@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { browserLanguage, type LanguagePreference, messages } from "../i18n";
+import { browserLanguage, type Language, messages } from "../i18n";
 
 const key = "hntoday-language";
 
-function readPreference(): LanguagePreference {
+function readPreference(): Language | null {
   try {
     const value = localStorage.getItem(key);
-    return value === "zh" || value === "en" ? value : "auto";
+    return value === "zh" || value === "en" ? value : null;
   } catch {
-    return "auto";
+    return null;
   }
 }
 
@@ -17,7 +17,7 @@ function detectLanguage() {
 }
 
 export function useLanguage() {
-  const [preference, setPreference] = useState<LanguagePreference>(readPreference);
+  const [preference, setPreference] = useState<Language | null>(readPreference);
   const [detected, setDetected] = useState(detectLanguage);
   useEffect(() => {
     const detect = () => setDetected(detectLanguage());
@@ -31,13 +31,12 @@ export function useLanguage() {
       window.removeEventListener("storage", sync);
     };
   }, []);
-  const choose = useCallback((value: LanguagePreference) => {
+  const choose = useCallback((value: Language) => {
     setPreference(value);
     try {
-      if (value === "auto") localStorage.removeItem(key);
-      else localStorage.setItem(key, value);
+      localStorage.setItem(key, value);
     } catch {}
   }, []);
-  const language = preference === "auto" ? detected : preference;
-  return { language, preference, choose, text: messages[language] };
+  const language = preference ?? detected;
+  return { language, choose, text: messages[language] };
 }

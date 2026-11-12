@@ -115,9 +115,7 @@ test("mobile layout and reduced motion remain usable", async ({ page }) => {
   await expect(page.getByRole("button", { name: "前一天" })).toBeVisible();
 });
 
-test("language follows the browser, can be overridden and restored without changing stories", async ({
-  page,
-}) => {
+test("language follows the browser and toggles without changing stories", async ({ page }) => {
   let requests = 0;
   page.on("request", (request) => {
     if (request.url().includes("/api/day?")) requests++;
@@ -125,8 +123,8 @@ test("language follows the browser, can be overridden and restored without chang
   await page.goto("/");
   await expect(page.locator(".chapter")).toHaveCount(3);
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
-  const languageControl = page.getByRole("combobox", { name: "选择语言" });
-  await expect(languageControl).toHaveValue("auto");
+  const languageControl = page.getByRole("button", { name: "切换到英文" });
+  await expect(page.getByRole("combobox")).toHaveCount(0);
   await languageControl.focus();
   await expect(languageControl).toBeFocused();
   await expect(page.locator(".language")).toHaveCSS("outline-style", "solid");
@@ -137,14 +135,15 @@ test("language follows the browser, can be overridden and restored without chang
       const rect = element.getBoundingClientRect();
       return { width: rect.width, height: rect.height, radius: getComputedStyle(element).borderRadius };
     };
-    return [dimensions(".language"), dimensions("button.theme")];
+    return [dimensions(".language"), dimensions("button.theme:not(.language)")];
   });
   expect(controls[0]).toEqual(controls[1]);
   await expect(page.getByText("真实数据")).toHaveCount(0);
   const story = (await page.locator("#y2025 .lead-link").textContent()) ?? "";
   await page.getByRole("button", { name: "2024 年", exact: true }).click();
   await expect(page.locator(".m-title")).toContainText("Real 2024 story 1");
-  await page.getByRole("combobox", { name: "选择语言" }).selectOption("en");
+  await languageControl.focus();
+  await page.keyboard.press("Enter");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("heading", { name: /On this day/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Previous day" })).toBeVisible();
@@ -153,12 +152,15 @@ test("language follows the browser, can be overridden and restored without chang
   await expect(page.locator("#y2025 .lead-link")).toHaveText(story);
   expect(requests).toBe(1);
   const frame = await page.locator("header, main, footer, nav").allTextContents();
-  expect(frame.join(" ").replaceAll("中文", "")).not.toMatch(/[\u4e00-\u9fff]/);
+  expect(frame.join(" ")).not.toMatch(/[\u4e00-\u9fff]/);
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.getByRole("combobox", { name: "Choose language" })).toHaveValue("en");
-  await page.getByRole("combobox", { name: "Choose language" }).selectOption("auto");
+  await page.getByRole("button", { name: "Switch to Chinese" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
+  await page.evaluate(() => localStorage.removeItem("hntoday-language"));
+  await page.reload();
   await page.evaluate(() => {
     Object.defineProperty(navigator, "languages", { value: ["en-US"], configurable: true });
     window.dispatchEvent(new Event("languagechange"));
@@ -172,12 +174,12 @@ test.describe("English browser", () => {
   test("automatically shows English and fits narrow screens", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
-    await expect(page.getByRole("combobox", { name: "Choose language" })).toHaveValue("auto");
+    await expect(page.getByRole("button", { name: "Switch to Chinese" })).toBeVisible();
     await expect(page.locator(".st-date")).toContainText("Nov 12");
     await expect(page.locator("#y2025 .lead-link")).toHaveText("Real 2025 story 1");
     await expect(page).toHaveTitle("Nov 12 · Hacker News On This Day");
     for (const language of ["en", "zh"] as const) {
-      if (language === "zh") await page.getByRole("combobox", { name: "Choose language" }).selectOption("zh");
+      if (language === "zh") await page.getByRole("button", { name: "Switch to Chinese" }).click();
       for (const width of [320, 360, 390, 768, 1280]) {
         await page.setViewportSize({ width, height: 844 });
         const layout = await page.evaluate(() => {

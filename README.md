@@ -1,6 +1,6 @@
 # Hacker News On This Day
 
-A small time machine for Hacker News: explore the five highest-scored stories submitted on the same UTC calendar date in each of the previous 15 years. The interface follows the provided design prototype, with a year scrubber, timeline, trend chart, light and dark themes, and reduced-motion support. The interface follows the browser's Chinese or English language preference by default; the language selector can override or restore it. Story titles and other archive content remain in their original language.
+A small time machine for Hacker News: explore the five highest-scored stories submitted on the same UTC calendar date in each of the previous 15 years. The interface follows the provided design prototype, with a year scrubber, timeline, trend chart, light and dark themes, and reduced-motion support. The interface follows the browser's Chinese or English language preference by default; the language button switches between them and remembers the selection. Story titles and other archive content remain in their original language.
 
 ## Data and interpretation
 

@@ -5,7 +5,6 @@ import { Chapters } from "./components/Chapters";
 import { Machine } from "./components/Machine";
 import { Arrow, fmt, style, weekday } from "./components/shared";
 import { Trend } from "./components/Trend";
-import type { LanguagePreference } from "./i18n";
 import { useArchive } from "./viewmodels/useArchive";
 import { useLanguage } from "./viewmodels/useLanguage";
 
@@ -32,7 +31,7 @@ function Counter({ value }: { value: number }) {
 export default function App() {
   const vm = useArchive();
   const { date, today, isToday, years, archive, error, loading, shift, random, setDate, refresh } = vm;
-  const { language, preference, choose, text } = useLanguage();
+  const { language, choose, text } = useLanguage();
   const root = document.documentElement;
   const [theme, setTheme] = useState(() =>
     matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark",
@@ -247,7 +246,13 @@ export default function App() {
             </button>
           </fieldset>
           <div className="nav-r">
-            <label className="theme language" title={text.language}>
+            <button
+              className="theme language"
+              type="button"
+              aria-label={text.language}
+              title={text.language}
+              onClick={() => choose(language === "zh" ? "en" : "zh")}
+            >
               <svg
                 aria-hidden="true"
                 viewBox="0 0 16 16"
@@ -260,16 +265,7 @@ export default function App() {
                 <circle cx="8" cy="8" r="6" />
                 <path d="M2 8h12M8 2c1.7 1.6 2.5 3.6 2.5 6S9.7 12.4 8 14M8 2C6.3 3.6 5.5 5.6 5.5 8S6.3 12.4 8 14" />
               </svg>
-              <select
-                aria-label={text.language}
-                value={preference}
-                onChange={(event) => choose(event.currentTarget.value as LanguagePreference)}
-              >
-                <option value="auto">{text.auto}</option>
-                <option value="zh">中文</option>
-                <option value="en">English</option>
-              </select>
-            </label>
+            </button>
             <button
               ref={nav}
               className="theme"
