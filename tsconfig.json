@@ -16,6 +16,7 @@
     "server",
     "tests",
     "browser",
+    "scripts",
     "vite.config.ts",
     "vite.server.config.ts",
     "vitest.config.ts",

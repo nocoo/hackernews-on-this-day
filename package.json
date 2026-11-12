@@ -13,9 +13,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check --error-on-warnings .",
     "check": "bun run lint && bun run typecheck",
-    "test": "vitest run tests",
+    "test": "bun run build && vitest run tests",
     "test:coverage": "vitest run tests/calendar.test.ts --coverage",
-    "test:browser": "playwright test"
+    "test:integration": "bun run build && vitest run tests/archive.test.ts tests/production.test.ts",
+    "test:browser": "bun run build && playwright test"
   },
   "dependencies": {
     "@duckdb/node-api": "2.0.0-r.1",

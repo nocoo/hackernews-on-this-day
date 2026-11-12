@@ -25,3 +25,15 @@ The numeric `Intl.DateTimeFormat` options produced `11/12`, not the original `11
 ## 2026-11-12: Narrow navigation with language controls
 
 The mobile overflow check passed even though the new language selector overlapped the date navigation because the page clips horizontal overflow. Test the actual control bounds and inspect narrow-screen layouts in both languages rather than relying on document width alone.
+
+## 2026-11-12: Discovering the deployment reference
+
+The Firefly deployment workflow was assumed to be named `deploy.yml`, but it is `release.yml`; the local base-ci checkout also lacked the current tag. Discover workflow filenames first and verify the tag and its contents from the remote source when the local clone is stale.
+
+## 2026-11-12: Browser fixture cleanup
+
+Playwright force-killed its web server by default, leaving an isolated Parquet fixture behind. Configure graceful shutdown, clean only a marked owned fixture, and check cleanup after both passing and intentionally failing browser runs.
+
+## 2026-11-12: Bun mirror URLs in the lockfile
+
+A dependency installation rewrote lockfile entries to the temporary mirror URL, including a different mirror hostname than the initial normalization expected. Remove machine-specific URLs before committing and verify the entire lockfile has none.

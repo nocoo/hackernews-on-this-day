@@ -9,9 +9,10 @@ export default defineConfig({
     launchOptions: process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {},
   },
   webServer: {
-    command: "bunx vite --host 127.0.0.1 --port 27065 --strictPort",
-    url: "http://127.0.0.1:27065",
+    command: "exec bun run scripts/browser-server.ts",
+    url: "http://127.0.0.1:27065/api/live",
     reuseExistingServer: false,
+    gracefulShutdown: { signal: "SIGTERM", timeout: 10000 },
     timeout: 30000,
   },
 });

@@ -14,7 +14,7 @@ const types: Record<string, string> = {
   ".png": "image/png",
 };
 
-createServer(async (req, res) => {
+const server = createServer(async (req, res) => {
   try {
     if (await handleApi(req, res)) return;
     if (req.method !== "GET" && req.method !== "HEAD") {
@@ -44,6 +44,10 @@ createServer(async (req, res) => {
     if (!res.headersSent) res.writeHead(500).end();
     else res.destroy();
   }
-}).listen(Number(process.env.PORT ?? 7065), process.env.HOST ?? "0.0.0.0", () => {
-  console.log(`Hacker News On This Day listening on ${process.env.PORT ?? 7065}`);
+});
+
+server.listen(Number(process.env.PORT ?? 7065), process.env.HOST ?? "0.0.0.0", () => {
+  const address = server.address();
+  if (!address || typeof address === "string") throw new Error("Missing server address");
+  console.log(`Hacker News On This Day listening on ${address.port}`);
 });
