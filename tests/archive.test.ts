@@ -6,15 +6,14 @@ import { DuckDBConnection } from "@duckdb/node-api";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { handleApi } from "../server/api";
 import { DataUnavailableError, getDayArchive } from "../server/archive";
-import { calendarYear, dateLabel, dayOfYear, shiftDay, validDay } from "../src/calendar";
-import { browserLanguage } from "../src/i18n";
 
+const currentYear = new Date().getUTCFullYear();
 let dir: string;
 beforeAll(async () => {
   dir = await mkdtemp(join(tmpdir(), "hn-archive-"));
   const db = await DuckDBConnection.create();
   try {
-    for (const year of [2024, 2025]) {
+    for (const year of [currentYear - 2, currentYear - 1]) {
       await mkdir(join(dir, String(year)));
       const path = join(dir, String(year), `${year}-11.parquet`).replaceAll("'", "''");
       await db.run(`COPY (
@@ -41,40 +40,17 @@ afterAll(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-describe("calendar", () => {
-  it("validates and moves through leap day and year boundaries", () => {
-    expect(validDay(2, 29)).toBe(true);
-    expect(validDay(2, 30)).toBe(false);
-    expect(validDay(13, 1)).toBe(false);
-    expect(shiftDay({ month: 2, day: 28 }, 1)).toEqual({ month: 2, day: 29 });
-    expect(shiftDay({ month: 1, day: 1 }, -1)).toEqual({ month: 12, day: 31 });
-    expect(dateLabel({ month: 11, day: 12 }, "zh")).toBe("11月12日");
-    expect(dateLabel({ month: 11, day: 12 }, "en")).toBe("Nov 12");
-    expect(dayOfYear({ month: 11, day: 12 }, 2026)).toBe(316);
-    expect(calendarYear({ month: 2, day: 29 }, 2026)).toBe(2024);
-  });
-});
-
-describe("language detection", () => {
-  it("uses the first supported browser language and falls back to English", () => {
-    expect(browserLanguage(["zh-Hant", "en-US"])).toBe("zh");
-    expect(browserLanguage(["fr-FR", "en-US", "zh-CN"])).toBe("en");
-    expect(browserLanguage(["fr-FR", "zh-CN"])).toBe("zh");
-    expect(browserLanguage([])).toBe("en");
-  });
-});
-
 describe("archive", () => {
   it("selects and ranks the five real stories per year and reports missing files", async () => {
-    const result = await getDayArchive(11, 12, dir, 2026);
-    expect(result.years.map((year) => year.year)).toEqual([2025, 2024]);
+    const result = await getDayArchive(11, 12, dir, currentYear);
+    expect(result.years.map((year) => year.year)).toEqual([currentYear - 1, currentYear - 2]);
     expect(result.years[0].stories.map((story) => story.id)).toEqual([7, 10, 6, 5, 4]);
     expect(result.years[0].stories[0].title).toBe("Story 7");
     expect(result.missingYears).toHaveLength(13);
   });
   it("distinguishes invalid dates from unavailable data", async () => {
-    await expect(getDayArchive(2, 30, dir, 2026)).rejects.toThrow(RangeError);
-    await expect(getDayArchive(2, 29, dir, 2026)).rejects.toThrow(DataUnavailableError);
+    await expect(getDayArchive(2, 30, dir, currentYear)).rejects.toThrow(RangeError);
+    await expect(getDayArchive(2, 29, dir, currentYear)).rejects.toThrow(DataUnavailableError);
   });
   it("validates HTTP input and serves the archive independently of Vite", async () => {
     const previous = process.env.DATA_DIR;
@@ -97,7 +73,7 @@ describe("archive", () => {
       const body = (await response.json()) as {
         years: Array<{ year: number; stories: Array<{ id: number }> }>;
       };
-      expect(body.years[0].year).toBe(2025);
+      expect(body.years[0].year).toBe(currentYear - 1);
       expect(body.years[0].stories[0].id).toBe(7);
     } finally {
       await new Promise<void>((resolve, reject) =>

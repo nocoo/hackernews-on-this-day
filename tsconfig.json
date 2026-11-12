@@ -18,6 +18,7 @@
     "browser",
     "vite.config.ts",
     "vite.server.config.ts",
+    "vitest.config.ts",
     "playwright.config.ts"
   ]
 }
