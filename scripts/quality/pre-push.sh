@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+temporary=$(mktemp -d "${TMPDIR:-/tmp}/hntoday-push.XXXXXXXX")
+trap 'rm -rf -- "$temporary"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+cat > "$temporary/refs"
+[[ -s "$temporary/refs" ]] || { echo "pre-push: no refs provided" >&2; exit 1; }
+zero=0000000000000000000000000000000000000000
+count=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  [[ "$local_sha" =~ ^[a-f0-9]{40}$ && "$remote_sha" =~ ^[a-f0-9]{40}$ ]] || { echo "pre-push: invalid ref" >&2; exit 1; }
+  if [[ "$local_sha" == "$zero" ]]; then
+    printf '▸ %s: deletion, no source checks\n' "$remote_ref"
+    count=$((count + 1))
+    continue
+  fi
+  commit=$(git rev-parse --verify "$local_sha^{commit}")
+  if [[ "$remote_sha" == "$zero" ]]; then
+    range="$commit --not --remotes"
+  else
+    range="$remote_sha..$commit"
+  fi
+  count=$((count + 1))
+  snapshot="$temporary/snapshot-$count"
+  mkdir -p "$snapshot" "$temporary/runtime-$count"
+  git archive "$commit" | tar -xf - -C "$snapshot"
+  printf '\n▸ %s → %s: testing %s\n' "$local_ref" "$remote_ref" "$commit"
+  (
+    unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+    export GATE_REPO="$root" GATE_TMP="$temporary/runtime-$count" GATE_RANGE="$range"
+    cd "$snapshot"
+    bash scripts/quality/run-local.sh pre-push
+  )
+done < "$temporary/refs"
+[[ "$count" -gt 0 ]] || { echo "pre-push: no source or deletion refs found" >&2; exit 1; }

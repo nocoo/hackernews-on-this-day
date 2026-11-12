@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root=$(git rev-parse --show-toplevel)
+temporary=$(mktemp -d "${TMPDIR:-/tmp}/hntoday-commit.XXXXXXXX")
+trap 'rm -rf -- "$temporary"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+mkdir -p "$temporary/snapshot" "$temporary/runtime"
+export GATE_REPO="$root" GATE_TMP="$temporary/runtime"
+GATE_STAGED_FILES=$(git diff --cached --name-only)
+export GATE_STAGED_FILES
+index=${GIT_INDEX_FILE:-$(git rev-parse --git-path index)}
+[[ "$index" = /* ]] || index="$root/$index"
+export GATE_INDEX_FILE="$index"
+git checkout-index --all --prefix="$temporary/snapshot/"
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+cd "$temporary/snapshot"
+bash scripts/quality/run-local.sh pre-commit
