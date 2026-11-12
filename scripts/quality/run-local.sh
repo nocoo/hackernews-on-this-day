@@ -36,7 +36,7 @@ fi
 
 unset FORCE_COLOR
 export NO_COLOR=1
-export BUN_CONFIG_REGISTRY="${BUN_CONFIG_REGISTRY:-https://packagefeedproxy.microsoft.io/npm/}"
+export BUN_CONFIG_REGISTRY="${BUN_CONFIG_REGISTRY:-https://mirrors.tencent.com/npm/}"
 export TMPDIR="$GATE_TMP"
 export XDG_CACHE_HOME="$GATE_TMP/cache"
 export XDG_STATE_HOME="$GATE_TMP/state"

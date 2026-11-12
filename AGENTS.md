@@ -24,7 +24,7 @@ bun run test:coverage
 bun run test:deployment
 bun run test:integration
 bun run test:browser
-BUN_CONFIG_REGISTRY=https://packagefeedproxy.microsoft.io/npm/ bun run test:container
+BUN_CONFIG_REGISTRY=https://mirrors.tencent.com/npm/ bun run test:container
 bun run build
 git diff --check
 ```

@@ -15,7 +15,7 @@ The archive is not committed to Git or embedded in the image. Copy the monthly f
 Development requires Node.js 24+ and Bun. The quality gates use the exact versions in `.mise.toml` (Node 26.13.0 and Bun 1.4.4). On this machine use the approved npm mirror:
 
 ```sh
-BUN_CONFIG_REGISTRY=https://packagefeedproxy.microsoft.io/npm/ bun install --frozen-lockfile
+BUN_CONFIG_REGISTRY=https://mirrors.tencent.com/npm/ bun install --frozen-lockfile
 bun run dev
 ```
 
@@ -29,7 +29,7 @@ bun run test:coverage
 bun run test:deployment
 bun run test:integration
 bun run test:browser
-BUN_CONFIG_REGISTRY=https://packagefeedproxy.microsoft.io/npm/ bun run test:container
+BUN_CONFIG_REGISTRY=https://mirrors.tencent.com/npm/ bun run test:container
 bun run build
 bun run start
 ```
@@ -48,7 +48,7 @@ docker run --rm -p 127.0.0.1:7065:7065 \
   -v "$PWD/data:/data:ro" hackernews-on-this-day
 ```
 
-Where direct npm registry access is restricted, pass `--build-arg NPM_REGISTRY=https://packagefeedproxy.microsoft.io/npm/`. If that mirror is unreachable inside Docker, `https://mirrors.tencent.com/npm/` is an alternative. `docker compose up --build` uses the same read-only data mount. The application serves its own static assets and API; a reverse proxy can terminate TLS in front of it. No data is needed to build the image.
+Where direct npm registry access is restricted, pass `--build-arg NPM_REGISTRY=https://mirrors.tencent.com/npm/`. The Microsoft mirror can be used when it contains all locked package versions. `docker compose up --build` uses the same read-only data mount. The application serves its own static assets and API; a reverse proxy can terminate TLS in front of it. No data is needed to build the image.
 
 ### Future production deployment
 

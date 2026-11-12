@@ -45,3 +45,7 @@ The quality check name contained an unquoted colon, making the new deployment wo
 ## 2026-11-12: jp6 deployment preflight
 
 The first read-only probe assumed `/data` existed and stopped before collecting the remaining facts. Probe filesystem existence before invoking path-specific checks. A Caddy adaptation probe used `force_automate` as an unsupported subdirective, and suppressing stderr led to an incorrect diagnosis. Inspect the installed CLI's errors and test the actual `tls force_automate` syntax before judging support.
+
+## 2026-11-12: Hosted Chromium installation stalled
+
+The first GitHub CI run using Playwright 1.59.1 downloaded Chromium to 100% but did not complete installation before the 20-minute job timeout. The underlying cause is unconfirmed. Firefly successfully installed Playwright 1.65.0 on the same Node and runner family, so pin that version, limit the installation step to five minutes, and verify a new exact-revision CI run before releasing.
