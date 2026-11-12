@@ -204,7 +204,10 @@ test.describe("English browser", () => {
         expect(layout.stepper.left).toBeGreaterThanOrEqual(0);
         expect(layout.stepper.right).toBeLessThanOrEqual(layout.controls.left);
         if (layout.brand.width > 0) expect(layout.brand.right).toBeLessThanOrEqual(layout.stepper.left);
-        expect(Math.abs(layout.month.top - layout.day.top)).toBeLessThan(3);
+        expect(
+          Math.abs(layout.month.top - layout.day.top),
+          `${language} at ${width}px: ${JSON.stringify(layout)}`,
+        ).toBeLessThan(3);
       }
     }
   });

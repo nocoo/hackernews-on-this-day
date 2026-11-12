@@ -7,6 +7,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:27065",
     browserName: "chromium",
     locale: "zh-CN",
+    screenshot: "only-on-failure",
     launchOptions: process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {},
   },
   webServer: {

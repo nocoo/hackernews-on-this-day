@@ -48,4 +48,4 @@ The first read-only probe assumed `/data` existed and stopped before collecting 
 
 ## 2026-11-12: Hosted Chromium installation stalled
 
-The first GitHub CI run using Playwright 1.59.1 downloaded Chromium to 100% but did not complete installation before the 20-minute job timeout. The underlying cause is unconfirmed. Firefly successfully installed Playwright 1.65.0 on the same Node and runner family, so pin that version, limit the installation step to five minutes, and verify a new exact-revision CI run before releasing.
+The first GitHub CI run using Playwright 1.59.1 downloaded Chromium to 100% but did not complete installation before the 20-minute job timeout. The underlying cause is unconfirmed. Firefly successfully installed Playwright 1.65.0 on the same Node and runner family; upgrading and adding a five-minute install timeout restored browser installation. The subsequent Linux run exposed an English narrow-screen date wrap that the macOS run missed. Make the date fit the narrower font metrics and retain per-viewport diagnostics and screenshots for failures.

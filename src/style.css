@@ -339,9 +339,10 @@ main,.foot{position:relative;z-index:1}
   .eyebrow span{display:none}
   .insights{grid-template-columns:1fr}
   .s-right .meter{display:none}
-  :root[lang="en"] .ht-date{font-size:clamp(76px,26vw,104px)}
+  :root[lang="en"] .ht-date{font-size:clamp(68px,23vw,104px)}
 }
 @media (max-width:370px){
+  :root[lang="zh-CN"] .ht-date{font-size:clamp(82px,26vw,96px)}
   .brand{display:none}
   .nav-in{grid-template-columns:minmax(0,1fr) auto}
   .st-btn{width:26px;height:26px}
