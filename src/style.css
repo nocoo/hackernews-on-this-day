@@ -199,7 +199,7 @@ main,.foot{position:relative;z-index:1}
 
 /* ───────────── Reveal ───────────── */
 .js [data-rv]{opacity:0;transform:translateY(24px);filter:blur(6px);transition:opacity .9s var(--ease),transform 1.1s var(--ease-out),filter .9s var(--ease);transition-delay:calc(var(--i,0) * 70ms)}
-.js .in [data-rv],.js [data-rv].in{opacity:1;transform:none;filter:none}
+.js [data-revealed] [data-rv],.js [data-rv][data-revealed]{opacity:1;transform:none;filter:none}
 #main{transition:opacity .28s ease,transform .28s ease}
 #main.switching{opacity:0;transform:translateY(10px)}
 
@@ -251,7 +251,7 @@ main,.foot{position:relative;z-index:1}
 .s-right{display:flex;flex-direction:column;align-items:flex-end;gap:9px}
 .meter{width:76px;height:2px;border-radius:2px;background:var(--line)}
 .meter i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent-2));transform-origin:left;transform:scaleX(0);transition:transform 1.3s var(--ease-out);transition-delay:calc(var(--i,0) * 70ms + 200ms)}
-.in .meter i{transform:scaleX(var(--v,.5))}
+[data-revealed] .meter i{transform:scaleX(var(--v,.5))}
 
 /* ───────────── Trend ───────────── */
 .chart{position:relative;border:1px solid var(--line);border-radius:28px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface-2) 90%,transparent),color-mix(in srgb,var(--surface) 70%,transparent));box-shadow:var(--shadow);padding:clamp(18px,2.6vw,32px)}
@@ -271,9 +271,9 @@ main,.foot{position:relative;z-index:1}
 .c-dot.on{fill:var(--accent);transition-delay:0s;transform:scale(1.7)!important}
 .c-guide{stroke:var(--accent);stroke-width:1;stroke-dasharray:2 4;opacity:0;transition:opacity .25s}
 .c-peak{font:500 10px var(--mono);fill:var(--accent-ink);opacity:0;transition:opacity .8s ease 2s}
-.chart.in .c-line{stroke-dashoffset:0}
-.chart.in .c-area,.chart.in .c-peak{opacity:1}
-.chart.in .c-dot{transform:scale(1)}
+.chart[data-revealed] .c-line{stroke-dashoffset:0}
+.chart[data-revealed] .c-area,.chart[data-revealed] .c-peak{opacity:1}
+.chart[data-revealed] .c-dot{transform:scale(1)}
 .chart.hover .c-guide{opacity:.8}
 .tip{position:absolute;z-index:3;left:0;top:0;width:250px;padding:14px 16px;border:1px solid var(--line-2);border-radius:16px;background:color-mix(in srgb,var(--surface-2) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 24px 48px -20px rgba(0,0,0,.5);pointer-events:none;opacity:0;transform:translate(-50%,calc(-100% - 18px));transition:opacity .25s,transform .4s var(--ease),left .35s var(--ease-out),top .35s var(--ease-out)}
 .chart.hover .tip{opacity:1}

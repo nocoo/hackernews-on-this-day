@@ -61,6 +61,46 @@ test("shows archive, real links and working navigation", async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test("revealed chapters and chart stay visible during navigation and interaction", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.locator(".chapter")).toHaveCount(3);
+
+  for (const year of [2025, 2024, 2023, 2025]) {
+    const chapter = page.locator(`#y${year}`);
+    await chapter.evaluate((element) => {
+      window.scrollTo({
+        top: window.scrollY + element.getBoundingClientRect().top - 200,
+        behavior: "instant",
+      });
+    });
+    await expect(chapter).toHaveClass(/is-active/);
+    await expect(chapter.locator(".lead")).toHaveCSS("opacity", "1");
+  }
+
+  const chart = page.locator("#chart");
+  await chart.scrollIntoViewIfNeeded();
+  await expect(chart).toHaveCSS("opacity", "1");
+  await chart.locator("svg").hover({ position: { x: 120, y: 100 } });
+  await expect(chart).toHaveClass(/hover/);
+  await expect(chart).toHaveCSS("opacity", "1");
+  await page.mouse.move(0, 0);
+  await expect(chart).toHaveCSS("opacity", "1");
+});
+
+test("a very tall chapter is revealed when only a small portion is visible", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const chapter = page.locator("#y2025");
+  await chapter.evaluate((element) => {
+    element.style.minHeight = "20000px";
+    window.scrollTo({ top: window.scrollY + element.getBoundingClientRect().top - 200, behavior: "instant" });
+  });
+  await expect(chapter.locator(".lead")).toHaveCSS("opacity", "1");
+});
+
 test("mobile layout and reduced motion remain usable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });

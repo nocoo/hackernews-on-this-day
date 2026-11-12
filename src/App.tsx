@@ -65,11 +65,11 @@ export default function App() {
       (entries) =>
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add("in");
+            entry.target.setAttribute("data-revealed", "");
             reveal.unobserve(entry.target);
           }
         }),
-      { rootMargin: "0px 0px -12% 0px", threshold: 0.08 },
+      { rootMargin: "0px 0px -12% 0px" },
     );
     document.querySelectorAll(".chapter, #chart, .insight").forEach((el) => {
       reveal.observe(el);

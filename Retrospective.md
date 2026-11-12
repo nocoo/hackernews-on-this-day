@@ -13,3 +13,7 @@ Adding Playwright specs under `browser/` caused Vitest to discover and execute t
 ## 2026-11-12: Mobile layout with real archive titles
 
 The initial browser test used only short fixture titles and missed a long unbroken real title that widened the mobile page. Allow the mobile grid tracks to shrink and wrap long titles; keep a long-title fixture and a date-change assertion in the browser test.
+
+## 2026-11-12: Revealed content disappeared while scrolling
+
+The reveal observer added an `in` class and then stopped observing, but React replaced that class when the active chapter or chart hover state changed. The content became transparent permanently. Keep reveal state in a separate attribute that React does not overwrite, and test actual opacity after scrolling between chapters and interacting with the chart.
