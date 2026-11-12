@@ -3,14 +3,17 @@ import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export function hasExcludedTests(source: string): boolean {
-  return /\b(?:test|it|describe)(?:\s*\.\s*\w+)*\s*\.\s*(?:only|skip|skipIf|todo|fixme|runIf)\b/.test(source);
+  return (
+    /\b(?:test|it|describe)(?:\s*\.\s*\w+)*\s*\.\s*(?:only|skip|skipIf|todo|fixme|runIf)\b/.test(source) ||
+    /@\s*(?:unittest|pytest)\s*\.\s*(?:skip|skipIf|skipUnless)\b|\bskipTest\s*\(/.test(source)
+  );
 }
 
 function files(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) return files(path);
-    return /\.(?:test|spec)\.(?:ts|mjs)$/.test(path) ? [path] : [];
+    return /(?:\.(?:test|spec)\.(?:ts|mjs)|_test\.py)$/.test(path) ? [path] : [];
   });
 }
 

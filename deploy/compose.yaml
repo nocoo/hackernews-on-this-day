@@ -1,0 +1,29 @@
+services:
+  web:
+    image: ghcr.io/nocoo/hackernews-on-this-day:${IMAGE_SHA:?IMAGE_SHA is required}
+    container_name: hntoday-app
+    restart: unless-stopped
+    init: true
+    environment:
+      PORT: "7065"
+      DATA_DIR: /data
+      APP_REVISION: ${IMAGE_SHA:?IMAGE_SHA is required}
+    ports:
+      - 127.0.0.1:17065:7065
+    volumes:
+      - ./data:/data:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:7065/api/live').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s

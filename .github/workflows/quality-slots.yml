@@ -159,10 +159,14 @@ jobs:
           test -s coverage/lcov.info
           grep -q '^SF:src/calendar.ts$' coverage/lcov.info
           grep -q '^SF:src/i18n.ts$' coverage/lcov.info
+          grep -q '^SF:server/api.ts$' coverage/lcov.info
+          grep -q '^SF:server/archive.ts$' coverage/lcov.info
           ! grep -Eq 'Tests.*[1-9][0-9]* skipped' "$RUNNER_TEMP/l1.log"
-          bun run test:deployment | tee "$RUNNER_TEMP/l1-deploy.log"
+          bun run test:deployment 2>&1 | tee "$RUNNER_TEMP/l1-deploy.log"
           grep -Eq 'tests[[:space:]]+[1-9][0-9]*' "$RUNNER_TEMP/l1-deploy.log"
           grep -Eq 'skipped[[:space:]]+0' "$RUNNER_TEMP/l1-deploy.log"
+          grep -Eq 'Ran [1-9][0-9]* tests?' "$RUNNER_TEMP/l1-deploy.log"
+          ! grep -Eq 'skipped=[1-9]' "$RUNNER_TEMP/l1-deploy.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()
         with:
@@ -239,6 +243,30 @@ jobs:
         if: always()
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+  container-image-e2e:
+    name: "Container image E2E"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      tested-sha: ${{ steps.revision.outputs.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: nocoo/base-ci/.github/actions/setup-js@777bbe4f9bacab8a91d8c01974480a6ee23d28e0  # v2026.15
+        with:
+          runtime-version: ${{ env.BUN_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+          install-policy: project
+      - name: Build and exercise the image with an isolated archive
+        run: |
+          set -euo pipefail
+          bun run test:container | tee "$RUNNER_TEMP/container.log"
+          grep -q '^Container smoke passed:' "$RUNNER_TEMP/container.log"
+      - id: revision
+        if: always()
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
   p1-package:
     name: "P1: Package"
     if: ${{ vars.ENABLE_P1_PACKAGE == 'true' }}
@@ -261,6 +289,7 @@ jobs:
       - l3-integration
       - l4-e2e
       - p1-package
+      - container-image-e2e
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:

@@ -37,3 +37,7 @@ Playwright force-killed its web server by default, leaving an isolated Parquet f
 ## 2026-11-12: Bun mirror URLs in the lockfile
 
 A dependency installation rewrote lockfile entries to the temporary mirror URL, including a different mirror hostname than the initial normalization expected. Remove machine-specific URLs before committing and verify the entire lockfile has none.
+
+## 2026-11-12: Release workflow YAML
+
+The quality check name contained an unquoted colon, making the new deployment workflow invalid YAML. Quote values containing YAML punctuation and run actionlint before staging workflows.

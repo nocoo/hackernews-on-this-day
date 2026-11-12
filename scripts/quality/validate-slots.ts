@@ -12,6 +12,7 @@ const implemented = [
   "l1-unit",
   "l3-integration",
   "l4-e2e",
+  "container-image-e2e",
 ] as const;
 const notApplicable = ["l2-runtime", "p1-package"] as const;
 

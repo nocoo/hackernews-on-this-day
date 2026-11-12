@@ -18,6 +18,7 @@ const required = [
   "l1-unit",
   "l3-integration",
   "l4-e2e",
+  "container-image-e2e",
 ];
 const absent = ["l2-runtime", "p1-package"];
 function results() {
@@ -33,6 +34,8 @@ describe("test declarations", () => {
     for (const kind of ["only", "skip", "skipIf", "todo", "fixme", "runIf"]) {
       expect(hasExcludedTests(`test${dot}${kind}("example", () => {})`)).toBe(true);
     }
+    expect(hasExcludedTests(`@unittest${dot}skip('fixture')`)).toBe(true);
+    expect(hasExcludedTests(`self${dot}${"skip"}Test('fixture')`)).toBe(true);
     expect(hasExcludedTests("test('example', () => {})")).toBe(false);
   });
 });

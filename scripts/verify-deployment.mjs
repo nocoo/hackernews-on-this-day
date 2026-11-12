@@ -34,7 +34,9 @@ export async function verifyDeployment({
   sleep = delay,
 }) {
   const release = validateManifest(sourceSha, manifest);
-  const date = `month=${now.getUTCMonth() + 1}&day=${now.getUTCDate()}`;
+  const month = now.getUTCMonth() + 1;
+  const day = now.getUTCDate();
+  const date = `month=${month}&day=${day}`;
   let lastError;
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
@@ -55,8 +57,20 @@ export async function verifyDeployment({
       if (
         archiveResponse.status !== 200 ||
         archiveResponse.headers.get("cache-control") !== "no-store" ||
-        !Array.isArray(archive?.years) ||
-        archive.years.length === 0 ||
+        archive?.month !== month ||
+        archive.day !== day ||
+        !Array.isArray(archive.years) ||
+        !archive.years.some(
+          (year) =>
+            Array.isArray(year?.stories) &&
+            year.stories.some(
+              (story) =>
+                Number.isSafeInteger(story?.id) &&
+                story.id > 0 &&
+                typeof story.title === "string" &&
+                story.title.trim().length > 0,
+            ),
+        ) ||
         !Array.isArray(archive.missingYears) ||
         archive.missingYears.length !== 0
       ) {

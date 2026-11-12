@@ -11,11 +11,15 @@ const json = (value) =>
     headers: { "content-type": "application/json", "cache-control": "no-store" },
   });
 
-function fakeFetch({ revision = sha, missingYears = [] } = {}) {
+function fakeFetch({
+  revision = sha,
+  missingYears = [],
+  month = 11,
+  years = [{ year: 2025, stories: [{ id: 1, title: "Synthetic story" }] }],
+} = {}) {
   return async (url) => {
     if (url.endsWith("/api/live")) return json({ status: "ok", component: "hntoday", revision });
-    if (url.includes("/api/day?"))
-      return json({ years: [{ year: 2025, stories: [{ id: 1 }] }], missingYears });
+    if (url.includes("/api/day?")) return json({ month, day: 12, years, missingYears });
     return new Response("<title>Hacker News</title>", { headers: { "content-type": "text/html" } });
   };
 }
@@ -44,6 +48,11 @@ test("public verification accepts only matching revision and available archive",
   );
   await assert.rejects(
     verifyDeployment({ ...options, fetchImpl: fakeFetch({ missingYears: [2025] }) }),
+    /incomplete/,
+  );
+  await assert.rejects(verifyDeployment({ ...options, fetchImpl: fakeFetch({ month: 10 }) }), /incomplete/);
+  await assert.rejects(
+    verifyDeployment({ ...options, fetchImpl: fakeFetch({ years: [{ year: 2025, stories: [] }] }) }),
     /incomplete/,
   );
   await assert.rejects(

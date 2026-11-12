@@ -34,6 +34,7 @@ else
   exit 1
 fi
 
+unset FORCE_COLOR
 export NO_COLOR=1
 export BUN_CONFIG_REGISTRY="${BUN_CONFIG_REGISTRY:-https://packagefeedproxy.microsoft.io/npm/}"
 export TMPDIR="$GATE_TMP"
@@ -54,10 +55,14 @@ run 'L1: Unit and coverage' 45 bash -c '
   test -s coverage/lcov.info
   grep -q "^SF:src/calendar.ts$" coverage/lcov.info
   grep -q "^SF:src/i18n.ts$" coverage/lcov.info
+  grep -q "^SF:server/api.ts$" coverage/lcov.info
+  grep -q "^SF:server/archive.ts$" coverage/lcov.info
   ! grep -Eq "Tests.*[1-9][0-9]* skipped" "$1"
-  bun run test:deployment | tee "$2"
+  bun run test:deployment 2>&1 | tee "$2"
   grep -Eq "tests[[:space:]]+[1-9][0-9]*" "$2"
   grep -Eq "skipped[[:space:]]+0" "$2"
+  grep -Eq "Ran [1-9][0-9]* tests?" "$2"
+  ! grep -Eq "skipped=[1-9]" "$2"
 ' _ "$GATE_TMP/l1.log" "$GATE_TMP/deployment.log"
 
 if [[ "$stage" == pre-push ]]; then
