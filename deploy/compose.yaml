@@ -12,6 +12,8 @@ services:
       - 127.0.0.1:17065:7065
     volumes:
       - ./data:/data:ro
+    networks:
+      - edge
     logging:
       driver: json-file
       options:
@@ -27,3 +29,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+
+networks:
+  edge:
+    external: true

@@ -41,3 +41,7 @@ A dependency installation rewrote lockfile entries to the temporary mirror URL, 
 ## 2026-11-12: Release workflow YAML
 
 The quality check name contained an unquoted colon, making the new deployment workflow invalid YAML. Quote values containing YAML punctuation and run actionlint before staging workflows.
+
+## 2026-11-12: jp6 deployment preflight
+
+The first read-only probe assumed `/data` existed and stopped before collecting the remaining facts. Probe filesystem existence before invoking path-specific checks. A separate Caddy adaptation probe assumed `--config -` accepted stdin and produced no JSON; inspect the installed CLI's input contract before using a new invocation.

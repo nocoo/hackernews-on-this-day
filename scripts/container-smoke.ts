@@ -6,9 +6,11 @@ import { createArchiveFixture } from "../tests/fixtures/archive";
 const archive = await createArchiveFixture();
 const tag = `hntoday-test:${randomUUID()}`;
 const name = `hntoday-test-${randomUUID()}`;
+const network = `hntoday-test-${randomUUID()}`;
 const revision = process.env.GITHUB_SHA ?? "a".repeat(40);
 let built = false;
 let container = false;
+let networkCreated = false;
 const docker = (args: string[]) =>
   execFileSync("docker", args, { encoding: "utf8", timeout: 600_000 }).trim();
 let failure: unknown;
@@ -23,12 +25,18 @@ try {
   execFileSync("docker", [...build, "."], { stdio: "inherit", timeout: 600_000 });
   built = true;
   docker(["run", "--rm", "--entrypoint", "sh", tag, "-c", "test ! -e /data"]);
+  docker(["network", "create", network]);
+  networkCreated = true;
   container = true;
   docker([
     "run",
     "--detach",
     "--name",
     name,
+    "--network",
+    network,
+    "--network-alias",
+    "hntoday-app",
     "--publish",
     "127.0.0.1::7065",
     "--env",
@@ -80,6 +88,17 @@ try {
   }>;
   if (!mounts.some((mount) => mount.Destination === "/data" && !mount.RW))
     throw new Error("Archive mount is not read-only");
+  docker([
+    "run",
+    "--rm",
+    "--network",
+    network,
+    "--entrypoint",
+    "node",
+    tag,
+    "-e",
+    `fetch('http://hntoday-app:7065/api/live').then(r=>r.json()).then(j=>{if(j.revision!=='${revision}')process.exit(1)}).catch(()=>process.exit(1))`,
+  ]);
   console.log(`Container smoke passed: revision ${revision}, ${data.years.length} years, read-only fixture`);
 } catch (error) {
   failure = error;
@@ -95,6 +114,11 @@ async function cleanup() {
         throw new Error("Cannot inspect test container");
       if (inspected.status === 0) docker(["rm", "--force", name]);
     }
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    if (networkCreated) docker(["network", "rm", network]);
   } catch (error) {
     errors.push(error);
   }
