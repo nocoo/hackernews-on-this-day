@@ -247,17 +247,29 @@ export default function App() {
             </button>
           </fieldset>
           <div className="nav-r">
-            <select
-              className="language"
-              aria-label={text.language}
-              title={text.language}
-              value={preference}
-              onChange={(event) => choose(event.currentTarget.value as LanguagePreference)}
-            >
-              <option value="auto">{text.auto}</option>
-              <option value="zh">中文</option>
-              <option value="en">English</option>
-            </select>
+            <label className="theme language" title={text.language}>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="8" cy="8" r="6" />
+                <path d="M2 8h12M8 2c1.7 1.6 2.5 3.6 2.5 6S9.7 12.4 8 14M8 2C6.3 3.6 5.5 5.6 5.5 8S6.3 12.4 8 14" />
+              </svg>
+              <select
+                aria-label={text.language}
+                value={preference}
+                onChange={(event) => choose(event.currentTarget.value as LanguagePreference)}
+              >
+                <option value="auto">{text.auto}</option>
+                <option value="zh">中文</option>
+                <option value="en">English</option>
+              </select>
+            </label>
             <button
               ref={nav}
               className="theme"

@@ -125,7 +125,21 @@ test("language follows the browser, can be overridden and restored without chang
   await page.goto("/");
   await expect(page.locator(".chapter")).toHaveCount(3);
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
-  await expect(page.getByRole("combobox", { name: "选择语言" })).toHaveValue("auto");
+  const languageControl = page.getByRole("combobox", { name: "选择语言" });
+  await expect(languageControl).toHaveValue("auto");
+  await languageControl.focus();
+  await expect(languageControl).toBeFocused();
+  await expect(page.locator(".language")).toHaveCSS("outline-style", "solid");
+  const controls = await page.evaluate(() => {
+    const dimensions = (selector: string) => {
+      const element = document.querySelector(selector);
+      if (!element) throw new Error(`Missing ${selector}`);
+      const rect = element.getBoundingClientRect();
+      return { width: rect.width, height: rect.height, radius: getComputedStyle(element).borderRadius };
+    };
+    return [dimensions(".language"), dimensions("button.theme")];
+  });
+  expect(controls[0]).toEqual(controls[1]);
   await expect(page.getByText("真实数据")).toHaveCount(0);
   const story = (await page.locator("#y2025 .lead-link").textContent()) ?? "";
   await page.getByRole("button", { name: "2024 年", exact: true }).click();
