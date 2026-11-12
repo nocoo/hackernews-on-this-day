@@ -253,18 +253,9 @@ export default function App() {
               title={text.language}
               onClick={() => choose(language === "zh" ? "en" : "zh")}
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 16 16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="8" cy="8" r="6" />
-                <path d="M2 8h12M8 2c1.7 1.6 2.5 3.6 2.5 6S9.7 12.4 8 14M8 2C6.3 3.6 5.5 5.6 5.5 8S6.3 12.4 8 14" />
-              </svg>
+              <span className="language-mark" aria-hidden="true">
+                {language === "zh" ? "中" : "EN"}
+              </span>
             </button>
             <button
               ref={nav}

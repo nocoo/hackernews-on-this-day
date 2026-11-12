@@ -1,7 +1,7 @@
 export type Language = "zh" | "en";
 
 const zh = {
-  language: "切换到英文",
+  language: "当前中文，切换到英文",
   brand: "历史上的今天",
   dateControls: "切换日期",
   previousDay: "前一天",
@@ -81,7 +81,7 @@ const zh = {
 };
 
 const en: typeof zh = {
-  language: "Switch to Chinese",
+  language: "English, switch to Chinese",
   brand: "On This Day",
   dateControls: "Change date",
   previousDay: "Previous day",

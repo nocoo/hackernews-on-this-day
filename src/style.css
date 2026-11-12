@@ -92,6 +92,7 @@ main,.foot{position:relative;z-index:1}
 .nav-r{display:flex;align-items:center;justify-content:flex-end;gap:12px}
 .theme{position:relative;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2);overflow:hidden;transition:border-color .3s,background-color .3s}
 .theme:hover{border-color:var(--line-2);background:var(--accent-wash)}
+.language-mark{font:600 12px/1 var(--sans);letter-spacing:-.02em}
 .theme svg{position:absolute;width:16px;height:16px;transition:transform .7s var(--ease-out),opacity .4s}
 .theme .i-moon{transform:rotate(-90deg) scale(.4);opacity:0}
 :root[data-theme="dark"] .theme .i-moon{transform:none;opacity:1}
