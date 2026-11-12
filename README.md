@@ -48,7 +48,7 @@ docker run --rm -p 127.0.0.1:7065:7065 \
   -v "$PWD/data:/data:ro" hackernews-on-this-day
 ```
 
-Where direct npm registry access is restricted, pass `--build-arg NPM_REGISTRY=https://packagefeedproxy.microsoft.io/npm/`. `docker compose up --build` uses the same read-only data mount. The application serves its own static assets and API; a reverse proxy can terminate TLS in front of it. No data is needed to build the image.
+Where direct npm registry access is restricted, pass `--build-arg NPM_REGISTRY=https://packagefeedproxy.microsoft.io/npm/`. If that mirror is unreachable inside Docker, `https://mirrors.tencent.com/npm/` is an alternative. `docker compose up --build` uses the same read-only data mount. The application serves its own static assets and API; a reverse proxy can terminate TLS in front of it. No data is needed to build the image.
 
 ### Future production deployment
 
