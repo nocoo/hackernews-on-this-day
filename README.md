@@ -52,11 +52,11 @@ Where direct npm registry access is restricted, pass `--build-arg NPM_REGISTRY=h
 
 ### Future production deployment
 
-Deployment is prepared but has **not** been performed. `.github/workflows/release.yml` is manual-only; it uses the pinned base-ci Docker workflow to require a successful main CI run and `quality / Z1: Gate` for the same revision, build a GHCR image and deploy its digest. It does not deploy automatically after CI or a push.
+Deployment is prepared but has **not** been performed. Publishing a non-prerelease GitHub Release triggers `.github/workflows/release.yml`. It verifies that the version tag points to current main, finds a successful CI run for that exact revision and uses the pinned base-ci Docker workflow to require `quality / Z1: Gate`, build a GHCR image and deploy its digest. A CI run or push alone does not deploy.
 
 Before an explicitly authorized deployment, choose and verify the host and availability of `127.0.0.1:17065`, install `deploy/compose.yaml` as `/data/hackernews-on-this-day/compose.yaml`, and transfer the archive separately into `/data/hackernews-on-this-day/data/`. Ensure the container's Node user can read the files. The archive is mounted at `/data` read-only and is never part of the image. Configure the `hackernews-on-this-day / production` GitHub environment, its SSH/GHCR and Tailscale federation secrets, and the public reverse proxy separately; none have been configured by this repository.
 
-The deploy workflow verifies the running image digest, OCI revision and read-only mount, then checks the private service and the public `https://hntoday.hexly.ai` origin. The public check requires the expected revision and a non-empty archive without missing years. `APP_REVISION` is populated from the verified image SHA by the production Compose template.
+The deploy workflow verifies the running image digest, OCI revision and read-only mount, then checks the private service and the public `https://hntoday.hexly.ai` origin. The production container joins the existing external `edge` Docker network so the Caddy container can reach `hntoday-app:7065`. The public check requires the expected revision and a non-empty archive without missing years. `APP_REVISION` is populated from the verified image SHA by the production Compose template.
 
 ## Architecture
 

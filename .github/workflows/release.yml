@@ -1,12 +1,8 @@
 name: Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      ci-run-id:
-        description: Successful main push CI run ID for the exact tested commit
-        required: true
-        type: string
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -15,13 +11,33 @@ permissions:
   id-token: write
 
 jobs:
+  proof:
+    if: ${{ !github.event.release.prerelease && !github.event.release.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ci-run-id: ${{ steps.proof.outputs.ci-run-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
+        with:
+          node-version: "26.13.0"
+      - id: proof
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/release-proof.mjs
+
   deploy:
-    if: github.ref == 'refs/heads/main'
+    needs: proof
     uses: nocoo/base-ci/.github/workflows/deploy-docker.yml@777bbe4f9bacab8a91d8c01974480a6ee23d28e0  # v2026.15
     with:
       tailscale: true
       environment: hackernews-on-this-day / production
-      source-run-id: ${{ inputs.ci-run-id }}
+      source-run-id: ${{ needs.proof.outputs.ci-run-id }}
       required-quality-check: "quality / Z1: Gate"
       images: '[{"image":"ghcr.io/nocoo/hackernews-on-this-day","service":"web"}]'
       deploy-directory: /data/hackernews-on-this-day

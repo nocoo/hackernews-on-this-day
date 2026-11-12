@@ -10,7 +10,7 @@ A bilingual Vite/React site with a Node HTTP API and DuckDB reading a separately
 - Preserve the prototype's visuals and motion, reduced-motion support, automatic language detection and direct language toggle. Views, viewmodels and API client remain separate.
 - Tests use owned temporary files and processes. Browser E2E uses port 27065 and generated fixtures; never reuse an existing server. Integration tests bind an ephemeral loopback port. Daily development stays on 7065.
 - Production is not deployed yet. The future public origin is `https://hntoday.hexly.ai`; `deploy/compose.yaml` plans host port 17065 and a read-only archive mount. Confirm the target host and port availability before any deployment.
-- Release is manual-only and must prove the exact main CI run and `quality / Z1: Gate` via pinned base-ci before building and deploying image digests. Do not deploy, configure GitHub environments or alter production without explicit authorization.
+- Publishing a non-prerelease GitHub Release triggers deployment. The version tag must point to current main, and pinned base-ci must prove the exact main CI run and `quality / Z1: Gate` before building and deploying image digests. A push alone never deploys. Do not publish, deploy, configure GitHub environments or alter production without explicit authorization.
 
 ## Commands
 

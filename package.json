@@ -17,7 +17,7 @@
     "hooks:install": "bash scripts/quality/install-hooks.sh",
     "test": "bun run build && vitest run tests",
     "test:coverage": "vitest run tests/calendar.test.ts tests/quality.test.ts tests/archive.test.ts --coverage",
-    "test:deployment": "node --test scripts/verify-deployment.test.mjs && python3 tests/verify_remote_test.py",
+    "test:deployment": "node --test scripts/verify-deployment.test.mjs scripts/release-proof.test.mjs && python3 tests/verify_remote_test.py",
     "test:integration": "bun run build && vitest run tests/archive.test.ts tests/production.test.ts",
     "test:browser": "bun run build && playwright test",
     "test:container": "bun run scripts/container-smoke.ts"
