@@ -1,0 +1,31 @@
+{
+  "name": "hackernews-on-this-day",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build && vite build --config vite.server.config.ts",
+    "start": "node dist/server/index.js",
+    "check": "biome check . && tsc --noEmit",
+    "test": "vitest run tests",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "@duckdb/node-api": "2.0.0-r.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.5",
+    "@playwright/test": "1.59.1",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.5",
+    "vitest": "^4.1.0"
+  }
+}
