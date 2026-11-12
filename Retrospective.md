@@ -9,3 +9,7 @@ The global instruction path is a symlink. An initial attempt to read rules relat
 ## 2026-11-12: Test runner discovery
 
 Adding Playwright specs under `browser/` caused Vitest to discover and execute them as unit tests. Restrict Vitest to `tests/` and run Playwright separately. When introducing a second runner, verify both runners' discovery patterns before adding tests.
+
+## 2026-11-12: Mobile layout with real archive titles
+
+The initial browser test used only short fixture titles and missed a long unbroken real title that widened the mobile page. Allow the mobile grid tracks to shrink and wrap long titles; keep a long-title fixture and a date-change assertion in the browser test.

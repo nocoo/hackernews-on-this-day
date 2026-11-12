@@ -4,7 +4,7 @@ const years = [2025, 2024, 2023].map((year) => ({
   year,
   stories: Array.from({ length: 5 }, (_, i) => ({
     id: year * 100 + i,
-    title: `Real ${year} story ${i + 1}`,
+    title: `Real ${year} story ${i + 1}${year === 2024 && i === 2 ? ` ${"x".repeat(500)}` : ""}`,
     author: `author${i}`,
     score: 1000 - i,
     comments: 100 - i,
@@ -67,6 +67,10 @@ test("mobile layout and reduced motion remain usable", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator(".chapter")).toHaveCount(3);
   await expect(page.getByRole("button", { name: "已暂停" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "前一天" }).click();
+  await expect(page.locator(".st-date")).toContainText("11月11日");
+  await expect(page.locator(".chapter")).toHaveCount(3);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.getByRole("button", { name: "前一天" })).toBeVisible();
 });
