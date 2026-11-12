@@ -8,6 +8,7 @@
       "tests/**/*.ts",
       "browser/**/*.ts",
       "scripts/**/*.ts",
+      "scripts/**/*.mjs",
       "*.ts",
       "*.json",
       "!package.json"

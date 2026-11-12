@@ -17,6 +17,7 @@
     "hooks:install": "bash scripts/quality/install-hooks.sh",
     "test": "bun run build && vitest run tests",
     "test:coverage": "vitest run tests/calendar.test.ts tests/quality.test.ts --coverage",
+    "test:deployment": "node --test scripts/verify-deployment.test.mjs",
     "test:integration": "bun run build && vitest run tests/archive.test.ts tests/production.test.ts",
     "test:browser": "bun run build && playwright test"
   },

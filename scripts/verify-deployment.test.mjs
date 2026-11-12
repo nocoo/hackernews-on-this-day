@@ -1,0 +1,58 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { validateManifest, verifyDeployment } from "./verify-deployment.mjs";
+
+const sha = "a".repeat(40);
+const digest = `sha256:${"b".repeat(64)}`;
+const release = { image: "ghcr.io/nocoo/hackernews-on-this-day", service: "web", sourceSha: sha, digest };
+const manifest = JSON.stringify([release]);
+const json = (value) =>
+  new Response(JSON.stringify(value), {
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
+  });
+
+function fakeFetch({ revision = sha, missingYears = [] } = {}) {
+  return async (url) => {
+    if (url.endsWith("/api/live")) return json({ status: "ok", component: "hntoday", revision });
+    if (url.includes("/api/day?"))
+      return json({ years: [{ year: 2025, stories: [{ id: 1 }] }], missingYears });
+    return new Response("<title>Hacker News</title>", { headers: { "content-type": "text/html" } });
+  };
+}
+
+test("manifest requires the exact source revision and image digest", () => {
+  assert.deepEqual(validateManifest(sha, manifest), release);
+  assert.throws(() => validateManifest("invalid", manifest));
+  assert.throws(() => validateManifest(sha, "invalid"));
+  assert.throws(() => validateManifest(sha, "[]"));
+  for (const change of [
+    { service: "other" },
+    { image: "ghcr.io/nocoo/other" },
+    { sourceSha: "c".repeat(40) },
+    { digest: "latest" },
+  ]) {
+    assert.throws(() => validateManifest(sha, JSON.stringify([{ ...release, ...change }])));
+  }
+});
+
+test("public verification accepts only matching revision and available archive", async () => {
+  const options = { sourceSha: sha, manifest, now: new Date("2026-11-12T12:00:00Z"), sleep: async () => {} };
+  assert.match(await verifyDeployment({ ...options, fetchImpl: fakeFetch() }), /is healthy/);
+  await assert.rejects(
+    verifyDeployment({ ...options, fetchImpl: fakeFetch({ revision: "c".repeat(40) }) }),
+    /revision/,
+  );
+  await assert.rejects(
+    verifyDeployment({ ...options, fetchImpl: fakeFetch({ missingYears: [2025] }) }),
+    /incomplete/,
+  );
+  await assert.rejects(
+    verifyDeployment({
+      ...options,
+      fetchImpl: async () => {
+        throw new Error("offline");
+      },
+    }),
+    /offline/,
+  );
+});

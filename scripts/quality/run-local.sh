@@ -54,7 +54,11 @@ run 'L1: Unit and coverage' 45 bash -c '
   test -s coverage/lcov.info
   grep -q "^SF:src/calendar.ts$" coverage/lcov.info
   grep -q "^SF:src/i18n.ts$" coverage/lcov.info
-' _ "$GATE_TMP/l1.log"
+  ! grep -Eq "Tests.*[1-9][0-9]* skipped" "$1"
+  bun run test:deployment | tee "$2"
+  grep -Eq "tests[[:space:]]+[1-9][0-9]*" "$2"
+  grep -Eq "skipped[[:space:]]+0" "$2"
+' _ "$GATE_TMP/l1.log" "$GATE_TMP/deployment.log"
 
 if [[ "$stage" == pre-push ]]; then
   run 'G2: Dependencies' 120 osv-scanner scan --lockfile=bun.lock
@@ -63,11 +67,13 @@ if [[ "$stage" == pre-push ]]; then
     set -euo pipefail
     bun run test:integration | tee "$1"
     grep -Eq "Tests[[:space:]]+[1-9][0-9]* passed" "$1"
+    ! grep -Eq "Tests.*[1-9][0-9]* skipped" "$1"
   ' _ "$GATE_TMP/l3.log"
   run 'L4: E2E' 180 bash -c '
     set -euo pipefail
     bun run test:browser | tee "$1"
     grep -Eq "[1-9][0-9]* passed" "$1"
+    ! grep -Eq "[1-9][0-9]* skipped" "$1"
   ' _ "$GATE_TMP/l4.log"
 fi
 printf '\n✓ %s quality gate passed\n' "$stage"

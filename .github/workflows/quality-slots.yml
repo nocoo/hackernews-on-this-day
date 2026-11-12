@@ -159,6 +159,10 @@ jobs:
           test -s coverage/lcov.info
           grep -q '^SF:src/calendar.ts$' coverage/lcov.info
           grep -q '^SF:src/i18n.ts$' coverage/lcov.info
+          ! grep -Eq 'Tests.*[1-9][0-9]* skipped' "$RUNNER_TEMP/l1.log"
+          bun run test:deployment | tee "$RUNNER_TEMP/l1-deploy.log"
+          grep -Eq 'tests[[:space:]]+[1-9][0-9]*' "$RUNNER_TEMP/l1-deploy.log"
+          grep -Eq 'skipped[[:space:]]+0' "$RUNNER_TEMP/l1-deploy.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()
         with:
@@ -197,6 +201,7 @@ jobs:
           set -euo pipefail
           bun run test:integration | tee "$RUNNER_TEMP/l3.log"
           grep -Eq 'Tests[[:space:]]+[1-9][0-9]* passed' "$RUNNER_TEMP/l3.log"
+          ! grep -Eq 'Tests.*[1-9][0-9]* skipped' "$RUNNER_TEMP/l3.log"
       - id: revision
         if: always()
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -222,6 +227,7 @@ jobs:
           set -euo pipefail
           bun run test:browser | tee "$RUNNER_TEMP/l4.log"
           grep -Eq '[1-9][0-9]* passed' "$RUNNER_TEMP/l4.log"
+          ! grep -Eq '[1-9][0-9]* skipped' "$RUNNER_TEMP/l4.log"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         if: always()
         with:

@@ -10,12 +10,12 @@ function files(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) return files(path);
-    return /\.(?:test|spec)\.ts$/.test(path) ? [path] : [];
+    return /\.(?:test|spec)\.(?:ts|mjs)$/.test(path) ? [path] : [];
   });
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const tests = ["tests", "browser"].flatMap(files);
+  const tests = ["tests", "browser", "scripts"].flatMap(files);
   const excluded = tests.filter((path) => hasExcludedTests(readFileSync(path, "utf8")));
   if (!tests.length || excluded.length) {
     console.error(
