@@ -11,10 +11,11 @@
     "build": "vite build && vite build --config vite.server.config.ts",
     "start": "node dist/server/index.js",
     "typecheck": "tsc --noEmit",
-    "lint": "biome check --error-on-warnings .",
+    "lint": "biome check --error-on-warnings . && bun run scripts/quality/check-tests.ts",
     "check": "bun run lint && bun run typecheck",
+    "workflow:lint": "bun run scripts/quality/check-workflows.ts",
     "test": "bun run build && vitest run tests",
-    "test:coverage": "vitest run tests/calendar.test.ts --coverage",
+    "test:coverage": "vitest run tests/calendar.test.ts tests/quality.test.ts --coverage",
     "test:integration": "bun run build && vitest run tests/archive.test.ts tests/production.test.ts",
     "test:browser": "bun run build && playwright test"
   },

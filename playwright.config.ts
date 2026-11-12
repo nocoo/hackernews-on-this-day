@@ -2,6 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./browser",
+  forbidOnly: true,
   use: {
     baseURL: "http://127.0.0.1:27065",
     browserName: "chromium",
