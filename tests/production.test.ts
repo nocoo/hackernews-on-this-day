@@ -34,7 +34,7 @@ describe("production server with an isolated Parquet archive", () => {
 
   it("queries real Parquet over HTTP and ranks only stories", async () => {
     const live = await fetch(`${server.url}/api/live`);
-    expect(await live.json()).toEqual({ status: "ok" });
+    expect(await live.json()).toEqual({ status: "ok", component: "hntoday", revision: null });
     const response = await fetch(`${server.url}/api/day?month=11&day=12`);
     expect(response.status).toBe(200);
     const body = (await response.json()) as {

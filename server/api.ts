@@ -15,7 +15,7 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse): Prom
     return true;
   }
   if (url.pathname === "/api/live") {
-    json(res, 200, { status: "ok" });
+    json(res, 200, { status: "ok", component: "hntoday", revision: process.env.APP_REVISION || null });
     return true;
   }
   if (url.pathname !== "/api/day") {

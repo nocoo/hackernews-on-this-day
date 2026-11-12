@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 
 export async function startFixtureServer(dataDirectory: string, port = 0) {
   const child = spawn("node", ["dist/server/index.js"], {
-    env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), DATA_DIR: dataDirectory },
+    env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), DATA_DIR: dataDirectory, APP_REVISION: "" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   const exited = new Promise<number | null>((resolve) => child.once("exit", resolve));
