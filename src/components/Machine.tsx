@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { Language, Messages } from "../i18n";
 import type { CalendarDay, YearStories } from "../model";
 import { Arrow, domain, fmt, style, Title, weekday } from "./shared";
 
@@ -6,10 +7,14 @@ export function Machine({
   years,
   date,
   currentYear,
+  language,
+  text,
 }: {
   years: YearStories[];
   date: CalendarDay;
   currentYear: number;
+  language: Language;
+  text: Messages;
 }) {
   const chrono = [...years].reverse();
   const [index, setIndex] = useState(chrono.length - 1);
@@ -51,10 +56,11 @@ export function Machine({
           onClick={() => setPlaying(!playing)}
         >
           <i className="m-dot" />
-          <span>{playing ? "自动回放" : "已暂停"}</span>
+          <span>{playing ? text.autoplay : text.paused}</span>
         </button>
         <div className="mono">
-          {currentYear - selected.year} 年前 · {weekday(selected.year, date.month, date.day)}
+          {text.yearsAgo(currentYear - selected.year)} ·{" "}
+          {weekday(selected.year, date.month, date.day, language)}
         </div>
       </div>
       <div className="m-body">
@@ -75,21 +81,21 @@ export function Machine({
         </div>
         <div className="m-info" aria-live="polite" key={selected.year}>
           <div className="m-kicker mono swap">
-            <span>当日榜首</span>
-            <b>按分数排序</b>
+            <span>{text.topStory}</span>
+            <b>{text.sortedByScore}</b>
           </div>
           <h2 className="m-title swap">
             <Title title={first.title} />
           </h2>
           <div className="m-meta swap">
             <span>
-              <b>▲ {fmt(first.score)}</b> 分
+              <b>▲ {fmt(first.score)}</b> {text.points(first.score)}
             </span>
             <span>
-              <b>{fmt(first.comments)}</b> 评论
+              <b>{fmt(first.comments)}</b> {text.comments(first.comments)}
             </span>
             <span>{domain(first)}</span>
-            <span>by {first.author || "未知"}</span>
+            <span>by {first.author || text.unknownAuthor}</span>
           </div>
           <button
             className="m-go"
@@ -98,13 +104,13 @@ export function Machine({
               document.getElementById(`y${selected.year}`)?.scrollIntoView({ behavior: "smooth" })
             }
           >
-            翻到这一年 <Arrow />
+            {text.goYear} <Arrow />
           </button>
         </div>
       </div>
       <fieldset
         className="ruler"
-        aria-label="选择年份"
+        aria-label={text.chooseYear}
         style={style({ "--year-count": chrono.length })}
         onPointerDown={(event) => {
           setPlaying(false);
@@ -132,7 +138,7 @@ export function Machine({
             key={year.year}
             className={`tick${i === index ? " on" : ""}`}
             type="button"
-            aria-label={`${year.year} 年`}
+            aria-label={text.year(year.year)}
             aria-pressed={i === index}
             style={style({
               "--h": `${16 + Math.round(((year.stories[0].score - min) / Math.max(1, max - min)) * 46)}px`,

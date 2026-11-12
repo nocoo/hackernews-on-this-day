@@ -1,13 +1,14 @@
 import type { CSSProperties, ReactNode } from "react";
+import type { Language } from "../i18n";
 import type { Story } from "../model";
 
 export const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 export const style = (values: Record<string, string | number>) => values as CSSProperties;
 export const discussionUrl = (id: number) => `https://news.ycombinator.com/item?id=${id}`;
-export const weekday = (year: number, month: number, day: number) =>
-  ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"][
-    new Date(Date.UTC(year, month - 1, day)).getUTCDay()
-  ];
+export const weekday = (year: number, month: number, day: number, language: Language) =>
+  new Intl.DateTimeFormat(language === "zh" ? "zh-CN" : "en-US", { weekday: "long", timeZone: "UTC" }).format(
+    new Date(Date.UTC(year, month - 1, day)),
+  );
 
 export function domain(story: Story): string {
   try {

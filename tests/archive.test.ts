@@ -7,6 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { handleApi } from "../server/api";
 import { DataUnavailableError, getDayArchive } from "../server/archive";
 import { calendarYear, dateLabel, dayOfYear, shiftDay, validDay } from "../src/calendar";
+import { browserLanguage } from "../src/i18n";
 
 let dir: string;
 beforeAll(async () => {
@@ -47,9 +48,19 @@ describe("calendar", () => {
     expect(validDay(13, 1)).toBe(false);
     expect(shiftDay({ month: 2, day: 28 }, 1)).toEqual({ month: 2, day: 29 });
     expect(shiftDay({ month: 1, day: 1 }, -1)).toEqual({ month: 12, day: 31 });
-    expect(dateLabel({ month: 11, day: 12 })).toBe("11月12日");
+    expect(dateLabel({ month: 11, day: 12 }, "zh")).toBe("11月12日");
+    expect(dateLabel({ month: 11, day: 12 }, "en")).toBe("Nov 12");
     expect(dayOfYear({ month: 11, day: 12 }, 2026)).toBe(316);
     expect(calendarYear({ month: 2, day: 29 }, 2026)).toBe(2024);
+  });
+});
+
+describe("language detection", () => {
+  it("uses the first supported browser language and falls back to English", () => {
+    expect(browserLanguage(["zh-Hant", "en-US"])).toBe("zh");
+    expect(browserLanguage(["fr-FR", "en-US", "zh-CN"])).toBe("en");
+    expect(browserLanguage(["fr-FR", "zh-CN"])).toBe("zh");
+    expect(browserLanguage([])).toBe("en");
   });
 });
 

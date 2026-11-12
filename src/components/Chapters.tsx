@@ -1,3 +1,4 @@
+import type { Language, Messages } from "../i18n";
 import type { CalendarDay, YearStories } from "../model";
 import { discussionUrl, domain, fmt, Points, style, Title, weekday } from "./shared";
 
@@ -15,11 +16,15 @@ export function Chapters({
   date,
   currentYear,
   activeYear,
+  language,
+  text,
 }: {
   years: YearStories[];
   date: CalendarDay;
   currentYear: number;
   activeYear: number | null;
+  language: Language;
+  text: Messages;
 }) {
   return (
     <>
@@ -33,14 +38,14 @@ export function Chapters({
             className={`chapter${activeYear === year.year ? " is-active" : ""}`}
             id={`y${year.year}`}
             data-year={year.year}
-            aria-label={`${year.year} 年`}
+            aria-label={text.year(year.year)}
             key={year.year}
           >
             <div className="ch-side">
               <div className="ch-top" data-rv>
-                <span className="ago">{currentYear - year.year} 年前</span>
+                <span className="ago">{text.yearsAgo(currentYear - year.year)}</span>
                 <span className="mono">
-                  {weekday(year.year, date.month, date.day)} · {String(idx + 1).padStart(2, "0")} /{" "}
+                  {weekday(year.year, date.month, date.day, language)} · {String(idx + 1).padStart(2, "0")} /{" "}
                   {years.length}
                 </span>
               </div>
@@ -48,15 +53,19 @@ export function Chapters({
                 {year.year}
               </div>
               <h3 className="ch-era" data-rv style={style({ "--i": 2 })}>
-                这一天的故事
+                {text.chapterHeading}
               </h3>
               <p className="ch-desc" data-rv style={style({ "--i": 3 })}>
-                按帖子在归档中的分数排序，回看这一天的讨论。
+                {text.chapterDescription}
               </p>
               <div className="ch-kw" data-rv style={style({ "--i": 4 })}>
-                <span className="chip hot">前 {year.stories.length} 条</span>
-                <span className="chip">{fmt(totalScore)} 分</span>
-                <span className="chip">{fmt(totalComments)} 评论</span>
+                <span className="chip hot">{text.topStories(year.stories.length)}</span>
+                <span className="chip">
+                  {fmt(totalScore)} {text.points(totalScore)}
+                </span>
+                <span className="chip">
+                  {fmt(totalComments)} {text.comments(totalComments)}
+                </span>
               </div>
             </div>
             <div className="ch-main">
@@ -64,7 +73,7 @@ export function Chapters({
                 <div className="lead-top">
                   <span className="lead-rank mono">
                     <b>N° 01</b>
-                    <span>当日榜首</span>
+                    <span>{text.topStory}</span>
                   </span>
                   <Points score={lead.score} />
                 </div>
@@ -77,19 +86,19 @@ export function Chapters({
                   <span>
                     <b>{domain(lead)}</b>
                   </span>
-                  <span>by {lead.author || "未知"}</span>
+                  <span>by {lead.author || text.unknownAuthor}</span>
                   <span>
-                    <b>{fmt(lead.comments)}</b> 评论
+                    <b>{fmt(lead.comments)}</b> {text.comments(lead.comments)}
                   </span>
                   {original && (
                     <a className="source-link" href={original} target="_blank" rel="noreferrer">
-                      阅读原文 ↗
+                      {text.readOriginal}
                     </a>
                   )}
                 </div>
                 <div className="note">
-                  <span className="mono">旁注</span>
-                  <span>分数与评论数来自归档快照，不代表当时的首页排名。</span>
+                  <span className="mono">{text.note}</span>
+                  <span>{text.noteText}</span>
                 </div>
               </article>
               <ol className="stories">
@@ -102,7 +111,8 @@ export function Chapters({
                           <Title title={story.title} />
                         </span>
                         <span className="s-sub">
-                          {domain(story)} · {story.author || "未知"} · {fmt(story.comments)} 评论
+                          {domain(story)} · {story.author || text.unknownAuthor} · {fmt(story.comments)}{" "}
+                          {text.comments(story.comments)}
                         </span>
                       </span>
                       <span className="s-right">

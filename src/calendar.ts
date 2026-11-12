@@ -1,3 +1,4 @@
+import type { Language } from "./i18n.ts";
 import type { CalendarDay } from "./model.ts";
 
 export function validDay(month: number, day: number): boolean {
@@ -14,8 +15,13 @@ export function shiftDay(date: CalendarDay, offset: number): CalendarDay {
   return { month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
 }
 
-export function dateLabel(date: CalendarDay): string {
-  return `${date.month}月${date.day}日`;
+export function dateLabel(date: CalendarDay, language: Language): string {
+  if (language === "zh") return `${date.month}月${date.day}日`;
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(2024, date.month - 1, date.day)));
 }
 
 export function dayOfYear(date: CalendarDay, year: number): number {

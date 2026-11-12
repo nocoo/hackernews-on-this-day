@@ -5,7 +5,9 @@ import { Chapters } from "./components/Chapters";
 import { Machine } from "./components/Machine";
 import { Arrow, fmt, style, weekday } from "./components/shared";
 import { Trend } from "./components/Trend";
+import type { LanguagePreference } from "./i18n";
 import { useArchive } from "./viewmodels/useArchive";
+import { useLanguage } from "./viewmodels/useLanguage";
 
 function Counter({ value }: { value: number }) {
   const [shown, setShown] = useState(value);
@@ -30,6 +32,7 @@ function Counter({ value }: { value: number }) {
 export default function App() {
   const vm = useArchive();
   const { date, today, isToday, years, archive, error, loading, shift, random, setDate, refresh } = vm;
+  const { language, preference, choose, text } = useLanguage();
   const root = document.documentElement;
   const [theme, setTheme] = useState(() =>
     matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark",
@@ -44,8 +47,8 @@ export default function App() {
   const currentYear = new Date().getUTCFullYear();
   const dayYear = calendarYear(date, currentYear);
   const daysInYear = (Date.UTC(dayYear + 1, 0, 1) - Date.UTC(dayYear, 0, 1)) / 86400000;
-  const title = dateLabel(date);
-  const tomorrow = dateLabel(shiftDay(date, 1));
+  const title = dateLabel(date, language);
+  const tomorrow = dateLabel(shiftDay(date, 1), language);
   const stories = years.flatMap((year) => year.stories);
   const currentArchive = archive?.month === date.month && archive?.day === date.day;
   const ready = !loading && !error && currentArchive;
@@ -56,8 +59,9 @@ export default function App() {
     root.style.colorScheme = theme;
   }, [theme]);
   useEffect(() => {
-    document.title = `${title} · Hacker News 历史上的今天`;
-  }, [title]);
+    root.lang = language === "zh" ? "zh-CN" : "en";
+    document.title = `${title} · Hacker News ${text.brand}`;
+  }, [title, language, text.brand]);
   useEffect(() => {
     if (!ready) return;
     root.classList.add("js");
@@ -198,15 +202,15 @@ export default function App() {
             <span className="brand-t">
               <b>Hacker News</b>
               <i />
-              <span>历史上的今天</span>
+              <span>{text.brand}</span>
             </span>
           </div>
-          <fieldset className="stepper" aria-label="切换日期">
+          <fieldset className="stepper" aria-label={text.dateControls}>
             <button
               className="st-btn"
               type="button"
-              aria-label="前一天"
-              title="前一天"
+              aria-label={text.previousDay}
+              title={text.previousDay}
               onClick={() => selectDay(() => shift(-1))}
             >
               <Arrow direction="left" />
@@ -214,19 +218,19 @@ export default function App() {
             <button
               className="st-date"
               type="button"
-              title="回到今天"
+              title={text.backToday}
               onClick={() => selectDay(() => setDate(today))}
             >
               <span>{title}</span>
               <span className="st-today" hidden={!isToday}>
-                今天
+                {text.today}
               </span>
             </button>
             <button
               className="st-btn"
               type="button"
-              aria-label="后一天"
-              title="后一天"
+              aria-label={text.nextDay}
+              title={text.nextDay}
               onClick={() => selectDay(() => shift(1))}
             >
               <Arrow direction="right" />
@@ -235,23 +239,31 @@ export default function App() {
             <button
               className="st-btn"
               type="button"
-              aria-label="随机一天"
-              title="随机一天"
+              aria-label={text.randomDay}
+              title={text.randomDay}
               onClick={() => selectDay(random)}
             >
               ↝
             </button>
           </fieldset>
           <div className="nav-r">
-            <span className="mock" title="基于公开数据集的历史快照">
-              真实数据
-            </span>
+            <select
+              className="language"
+              aria-label={text.language}
+              title={text.language}
+              value={preference}
+              onChange={(event) => choose(event.currentTarget.value as LanguagePreference)}
+            >
+              <option value="auto">{text.auto}</option>
+              <option value="zh">中文</option>
+              <option value="en">English</option>
+            </select>
             <button
               ref={nav}
               className="theme"
               type="button"
-              aria-label="切换明暗主题"
-              title="切换主题 (T)"
+              aria-label={text.theme}
+              title={text.themeShortcut}
               onClick={() => {
                 const r = nav.current?.getBoundingClientRect();
                 toggleTheme(r ? r.left + r.width / 2 : innerWidth - 60, r ? r.top + r.height / 2 : 32);
@@ -303,19 +315,21 @@ export default function App() {
             </div>
             <h1 className="hero-title">
               <span className="ht-cn">
-                历史上的<em>{isToday ? "今天" : "这一天"}</em>
+                {text.heroPrefix}
+                <em>{isToday ? text.heroToday : text.heroDay}</em>
               </span>
               <span className="ht-date" role="img" aria-label={title} key={title}>
                 <span className="d-num">{dateDigits(date.month, 0)}</span>
-                <span className="d-unit">月</span>
+                <span className="d-unit">{text.monthUnit}</span>
                 <span className="d-num">{dateDigits(date.day, digitsOffset)}</span>
-                <span className="d-unit">日</span>
+                <span className="d-unit">{text.dayUnit}</span>
               </span>
             </h1>
             <div className="hero-foot">
               <div data-enter style={style({ "--d": 700 })}>
                 <p className="lede">
-                  <b>同一天，一年一页。</b>回看过去十五年每年的这一天，Hacker News 按分数排序的前五条帖子。
+                  <b>{text.ledeLead}</b>
+                  {text.lede}
                 </p>
                 <div className="cta">
                   <button
@@ -326,59 +340,66 @@ export default function App() {
                       document.getElementById(`y${years[0]?.year}`)?.scrollIntoView({ behavior: "smooth" })
                     }
                   >
-                    开始回看 <Arrow />
+                    {text.start} <Arrow />
                   </button>
                   <button className="btn btn-ghost" type="button" onClick={() => selectDay(random)}>
-                    随机一天 <span aria-hidden="true">↻</span>
+                    {text.randomDay} <span aria-hidden="true">↻</span>
                   </button>
                 </div>
               </div>
               <dl className="facts" data-enter style={style({ "--d": 820 })}>
                 <div>
-                  <dt className="mono">日期 · UTC</dt>
+                  <dt className="mono">{text.date}</dt>
                   <dd>
                     {title}
-                    {isToday ? ` · ${weekday(currentYear, date.month, date.day)}` : ""}
+                    {isToday ? ` · ${weekday(currentYear, date.month, date.day, language)}` : ""}
                   </dd>
                 </div>
                 <div>
-                  <dt className="mono">跨度</dt>
-                  <dd>{ready ? `${years.length} 年 · ${range}` : "加载中"}</dd>
+                  <dt className="mono">{text.span}</dt>
+                  <dd>{ready ? text.yearSpan(years.length, range) : text.loadingShort}</dd>
                 </div>
                 <div>
-                  <dt className="mono">收录</dt>
-                  <dd>{ready ? `每年前 5 · 共 ${stories.length} 条` : "加载中"}</dd>
+                  <dt className="mono">{text.collection}</dt>
+                  <dd>{ready ? text.collected(stories.length) : text.loadingShort}</dd>
                 </div>
               </dl>
             </div>
             {loading && (
               <div className="loading" role="status">
-                正在翻阅历史…
+                {text.loading}
               </div>
             )}
             {error && (
               <div className="error-panel" role="alert">
-                {error}{" "}
+                {text.error}{" "}
                 <button type="button" className="btn btn-ghost" onClick={refresh}>
-                  重试
+                  {text.retry}
                 </button>
               </div>
             )}
-            {ready && !years.length && <div className="error-panel">这一天没有符合条件的帖子。</div>}
+            {ready && !years.length && <div className="error-panel">{text.noStories}</div>}
             {ready && archive.missingYears.length > 0 && (
               <div className="error-panel" role="status">
-                部分年份的数据文件缺失：{archive.missingYears.join("、")}。展示的结果不完整。
+                {text.missingYears(archive.missingYears)}
               </div>
             )}
             {ready && years.length > 0 && (
               <>
-                <Machine key={title} years={years} date={date} currentYear={currentYear} />
+                <Machine
+                  key={`${date.month}-${date.day}`}
+                  years={years}
+                  date={date}
+                  currentYear={currentYear}
+                  language={language}
+                  text={text}
+                />
                 <div className="stats" data-enter style={style({ "--d": 1060 })}>
                   {[
-                    [years.length, "年里的同一天"],
-                    [stories.length, "条当日头条"],
-                    [stories.reduce((a, s) => a + s.score, 0), "累计分数"],
-                    [stories.reduce((a, s) => a + s.comments, 0), "条评论"],
+                    [years.length, text.statYears],
+                    [stories.length, text.statStories],
+                    [stories.reduce((a, s) => a + s.score, 0), text.statPoints],
+                    [stories.reduce((a, s) => a + s.comments, 0), text.statComments],
                   ].map(([value, label]) => (
                     <div className="stat" key={label}>
                       <b>
@@ -398,18 +419,25 @@ export default function App() {
               <div className="wrap">
                 <div className="sec-head">
                   <div>
-                    <div className="mono">01 — 逐年回看</div>
-                    <h2>一年一页，往回翻。</h2>
+                    <div className="mono">{text.chaptersKicker}</div>
+                    <h2>{text.chaptersHeading}</h2>
                   </div>
                   <p>
-                    从最近一年开始，按 <span className="kbd">J</span>
-                    <span className="kbd">K</span> 可以逐年跳转。
+                    {text.chaptersBeforeKeys} <span className="kbd">J</span>
+                    <span className="kbd">K</span> {text.chaptersAfterKeys}
                   </p>
                 </div>
-                <Chapters years={years} date={date} currentYear={currentYear} activeYear={activeYear} />
+                <Chapters
+                  years={years}
+                  date={date}
+                  currentYear={currentYear}
+                  activeYear={activeYear}
+                  language={language}
+                  text={text}
+                />
               </div>
             </section>
-            <Trend years={years} />
+            <Trend years={years} text={text} />
           </>
         )}
       </main>
@@ -417,19 +445,21 @@ export default function App() {
         <div className="wrap">
           <div className="foot-main">
             <h2>
-              明天<em>见</em>。
+              {text.footerPrefix}
+              <em>{text.footerEmphasis}</em>
+              {text.footerSuffix}
             </h2>
             <div className="foot-cta">
-              <p>历史每天翻一页。</p>
+              <p>{text.footerText}</p>
               <button className="btn btn-ghost" type="button" onClick={() => selectDay(() => shift(1))}>
-                看看 {tomorrow} <Arrow direction="right" />
+                {text.footerNext(tomorrow)} <Arrow direction="right" />
               </button>
             </div>
           </div>
           <div className="colophon">
-            <span>Hacker News · 历史上的今天</span>
+            <span>Hacker News · {text.brand}</span>
             <span>
-              数据来自{" "}
+              {text.sourcePrefix}
               <a
                 href="https://huggingface.co/datasets/open-index/hacker-news"
                 target="_blank"
@@ -437,23 +467,24 @@ export default function App() {
               >
                 open-index/hacker-news
               </a>
-              （ODC-By）；分数与评论数是归档快照，并非当时首页排名。与 Y Combinator 无关。
+              {text.sourceSuffix}
             </span>
             <span>
               <span className="kbd">J</span>
-              <span className="kbd">K</span> 逐年 · <span className="kbd">T</span> 主题
+              <span className="kbd">K</span> {text.shortcutYears} · <span className="kbd">T</span>{" "}
+              {text.shortcutTheme}
             </span>
           </div>
         </div>
       </footer>
-      <nav className={`rail${pastHero ? " visible" : ""}`} aria-label="年份导航">
+      <nav className={`rail${pastHero ? " visible" : ""}`} aria-label={text.yearNavigation}>
         {ready &&
           years.map((year) => (
             <button
               key={year.year}
               type="button"
               className={activeYear === year.year ? "on" : ""}
-              aria-label={`跳到 ${year.year} 年`}
+              aria-label={text.jumpYear(year.year)}
               onClick={() => document.getElementById(`y${year.year}`)?.scrollIntoView({ behavior: "smooth" })}
             >
               <span>{year.year}</span>

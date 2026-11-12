@@ -21,7 +21,8 @@ export function useArchive() {
     fetchArchive(date, controller.signal)
       .then(setArchive)
       .catch((cause: unknown) => {
-        if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : "加载失败。");
+        if (!controller.signal.aborted)
+          setError(cause instanceof Error ? cause.message : "Archive unavailable");
       })
       .finally(() => {
         if (!controller.signal.aborted) setLoading(false);

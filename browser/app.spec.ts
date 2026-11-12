@@ -115,6 +115,97 @@ test("mobile layout and reduced motion remain usable", async ({ page }) => {
   await expect(page.getByRole("button", { name: "前一天" })).toBeVisible();
 });
 
+test("language follows the browser, can be overridden and restored without changing stories", async ({
+  page,
+}) => {
+  let requests = 0;
+  page.on("request", (request) => {
+    if (request.url().includes("/api/day?")) requests++;
+  });
+  await page.goto("/");
+  await expect(page.locator(".chapter")).toHaveCount(3);
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
+  await expect(page.getByRole("combobox", { name: "选择语言" })).toHaveValue("auto");
+  await expect(page.getByText("真实数据")).toHaveCount(0);
+  const story = (await page.locator("#y2025 .lead-link").textContent()) ?? "";
+  await page.getByRole("button", { name: "2024 年", exact: true }).click();
+  await expect(page.locator(".m-title")).toContainText("Real 2024 story 1");
+  await page.getByRole("combobox", { name: "选择语言" }).selectOption("en");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.getByRole("heading", { name: /On this day/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Previous day" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Paused" })).toBeVisible();
+  await expect(page.locator(".m-title")).toContainText("Real 2024 story 1");
+  await expect(page.locator("#y2025 .lead-link")).toHaveText(story);
+  expect(requests).toBe(1);
+  const frame = await page.locator("header, main, footer, nav").allTextContents();
+  expect(frame.join(" ").replaceAll("中文", "")).not.toMatch(/[\u4e00-\u9fff]/);
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.getByRole("combobox", { name: "Choose language" })).toHaveValue("en");
+  await page.getByRole("combobox", { name: "Choose language" }).selectOption("auto");
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "languages", { value: ["en-US"], configurable: true });
+    window.dispatchEvent(new Event("languagechange"));
+  });
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+});
+
+test.describe("English browser", () => {
+  test.use({ locale: "en-US" });
+
+  test("automatically shows English and fits narrow screens", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await expect(page.getByRole("combobox", { name: "Choose language" })).toHaveValue("auto");
+    await expect(page.locator(".st-date")).toContainText("Nov 12");
+    await expect(page.locator("#y2025 .lead-link")).toHaveText("Real 2025 story 1");
+    await expect(page).toHaveTitle("Nov 12 · Hacker News On This Day");
+    for (const language of ["en", "zh"] as const) {
+      if (language === "zh") await page.getByRole("combobox", { name: "Choose language" }).selectOption("zh");
+      for (const width of [320, 360, 390, 768, 1280]) {
+        await page.setViewportSize({ width, height: 844 });
+        const layout = await page.evaluate(() => {
+          const bounds = (selector: string) => {
+            const element = document.querySelector(selector);
+            if (!element) throw new Error(`Missing ${selector}`);
+            const rect = element.getBoundingClientRect();
+            return { left: rect.left, right: rect.right, top: rect.top, width: rect.width };
+          };
+          return {
+            overflow: document.documentElement.scrollWidth > innerWidth,
+            brand: bounds(".brand"),
+            stepper: bounds(".stepper"),
+            controls: bounds(".nav-r"),
+            month: bounds(".d-unit:nth-child(2)"),
+            day: bounds(".d-unit:nth-child(4)"),
+          };
+        });
+        expect(layout.overflow).toBe(false);
+        expect(layout.stepper.left).toBeGreaterThanOrEqual(0);
+        expect(layout.stepper.right).toBeLessThanOrEqual(layout.controls.left);
+        if (layout.brand.width > 0) expect(layout.brand.right).toBeLessThanOrEqual(layout.stepper.left);
+        expect(Math.abs(layout.month.top - layout.day.top)).toBeLessThan(3);
+      }
+    }
+  });
+
+  test("localizes missing-data errors", async ({ page }) => {
+    await page.unrouteAll({ behavior: "wait" });
+    let calls = 0;
+    await page.route("**/api/day?*", async (route) => {
+      calls++;
+      if (calls === 1) await route.fulfill({ status: 503, json: { error: "Unavailable" } });
+      else await route.fulfill({ json: { month: 11, day: 12, years, missingYears: [2011] } });
+    });
+    await page.goto("/");
+    await expect(page.getByRole("alert")).toContainText("The archive could not be loaded");
+    await page.getByRole("button", { name: "Retry" }).click();
+    await expect(page.getByRole("status")).toContainText("Archive files are missing for 2011");
+  });
+});
+
 test("explains unavailable data and permits retry", async ({ page }) => {
   let calls = 0;
   await page.unrouteAll({ behavior: "wait" });

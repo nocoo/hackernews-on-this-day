@@ -1,8 +1,9 @@
 import { useState } from "react";
+import type { Messages } from "../i18n";
 import type { YearStories } from "../model";
 import { fmt, Points, style } from "./shared";
 
-export function Trend({ years }: { years: YearStories[] }) {
+export function Trend({ years, text }: { years: YearStories[]; text: Messages }) {
   const [hover, setHover] = useState<number | null>(null);
   const chrono = [...years].reverse();
   if (!chrono.length) return null;
@@ -33,24 +34,24 @@ export function Trend({ years }: { years: YearStories[] }) {
   const hot = years.reduce((a, b) => (b.stories[0].score > a.stories[0].score ? b : a));
   const quiet = years.reduce((a, b) => (b.stories[0].score < a.stories[0].score ? b : a));
   const cards = [
-    ["最热的一年", hot.year, `榜首获得 ${fmt(hot.stories[0].score)} 分。`],
-    ["最安静的一年", quiet.year, `榜首获得 ${fmt(quiet.stories[0].score)} 分。`],
-    ["Show HN", `×${show}`, "榜单中 Show HN 帖子的数量。"],
-    ["Ask HN", `×${ask}`, "榜单中 Ask HN 帖子的数量。"],
+    [text.hottestYear, hot.year, text.leadingScore(fmt(hot.stories[0].score))],
+    [text.quietestYear, quiet.year, text.leadingScore(fmt(quiet.stories[0].score))],
+    ["Show HN", `×${show}`, text.showDescription],
+    ["Ask HN", `×${ask}`, text.askDescription],
   ] as const;
   return (
     <section className="trend" id="trend">
       <div className="wrap">
         <div className="sec-head">
           <div>
-            <div className="mono">02 — 一条时间线</div>
-            <h2>同一天，热度的起伏。</h2>
+            <div className="mono">{text.trendKicker}</div>
+            <h2>{text.trendHeading}</h2>
           </div>
-          <p>每年这一天榜首帖子的分数。把指针移到任意一年，看看当时大家在聊什么。</p>
+          <p>{text.trendDescription}</p>
         </div>
         <div className={`chart${selected ? " hover" : ""}`} id="chart" data-rv>
           <div className="chart-head">
-            <span className="mono">当日榜首 · 分数</span>
+            <span className="mono">{text.chartLabel}</span>
             <span className="mono">
               {chrono[0].year} — {chrono.at(-1)?.year}
             </span>
@@ -61,11 +62,14 @@ export function Trend({ years }: { years: YearStories[] }) {
               onPointerLeave={() => setHover(null)}
               role="slider"
               tabIndex={0}
-              aria-label="当日榜首分数，使用左右方向键选择年份，回车跳转"
+              aria-label={text.chartControl}
               aria-valuemin={0}
               aria-valuemax={points.length - 1}
               aria-valuenow={hover ?? 0}
-              aria-valuetext={`${(selected ?? points[0]).year.year} 年，${(selected ?? points[0]).year.stories[0].score} 分`}
+              aria-valuetext={text.chartValue(
+                (selected ?? points[0]).year.year,
+                (selected ?? points[0]).year.stories[0].score,
+              )}
               onFocus={() => setHover((value) => value ?? 0)}
               onBlur={() => setHover(null)}
               onKeyDown={(event) => {
@@ -134,7 +138,7 @@ export function Trend({ years }: { years: YearStories[] }) {
                   />
                 ))}
                 <text className="c-peak" textAnchor="middle" x={peak.x} y={peak.y - 16}>
-                  峰值 {fmt(peak.year.stories[0].score)}
+                  {text.peak} {fmt(peak.year.stories[0].score)}
                 </text>
                 {points.map((p, i) => (
                   <text

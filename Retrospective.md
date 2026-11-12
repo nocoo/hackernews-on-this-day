@@ -17,3 +17,11 @@ The initial browser test used only short fixture titles and missed a long unbrok
 ## 2026-11-12: Revealed content disappeared while scrolling
 
 The reveal observer added an `in` class and then stopped observing, but React replaced that class when the active chapter or chart hover state changed. The content became transparent permanently. Keep reveal state in a separate attribute that React does not overwrite, and test actual opacity after scrolling between chapters and interacting with the chart.
+
+## 2026-11-12: Chinese date formatting
+
+The numeric `Intl.DateTimeFormat` options produced `11/12`, not the original `11月12日`. Use the explicit Chinese date format and test both languages in the actual runtimes before assuming locale formatting.
+
+## 2026-11-12: Narrow navigation with language controls
+
+The mobile overflow check passed even though the new language selector overlapped the date navigation because the page clips horizontal overflow. Test the actual control bounds and inspect narrow-screen layouts in both languages rather than relying on document width alone.
