@@ -19,7 +19,7 @@ BUN_CONFIG_REGISTRY=https://packagefeedproxy.microsoft.io/npm/ bun install --fro
 bun run dev
 ```
 
-The development server listens on `127.0.0.1:7065`. The intended local Caddy origin is `https://hntoday.dev.hexly.ai`; the public deployment origin is `https://hntoday.hexly.ai`. Port 7065 is provisional until the local port registry is available and the Caddy mapping has been verified.
+The development server listens on `127.0.0.1:7065`. The local Caddy origin is `https://hntoday.dev.hexly.ai`; the intended public deployment origin is `https://hntoday.hexly.ai`.
 
 ```sh
 bun run check
