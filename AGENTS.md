@@ -1,55 +1,58 @@
 # Hacker News On This Day
 
-A bilingual Vite/React site with a Node HTTP API and DuckDB reading a separately mounted Hacker News Parquet archive. The application code is MIT; the dataset is separately licensed. Human overview: [README.md](README.md). Historical mistakes: [Retrospective.md](Retrospective.md).
-
-## Invariants
-
-- The root `package.json` is the authoritative version; the site and `/api/live` derive their version from it. Keep `CHANGELOG.md` and release tags synchronized.
-- Keep `data/` and `results/` out of Git and Docker build contexts. Only `data/README.md` is tracked. Never use the development archive in tests; generated Parquet fixtures live in marked temporary directories.
-- The site presents snapshot scores, not historical front-page rankings. User-generated titles remain untranslated. Dates and ranking are UTC.
-- Preserve the prototype's visuals and motion, reduced-motion support, automatic language detection and direct language toggle. Views, viewmodels and API client remain separate.
-- Tests use owned temporary files and processes. Browser E2E uses port 27065 and generated fixtures; never reuse an existing server. Integration tests bind an ephemeral loopback port. Daily development stays on 7065.
-- Production is not deployed yet. The future public origin is `https://hntoday.hexly.ai`; `deploy/compose.yaml` plans host port 17065 and a read-only archive mount. Confirm the target host and port availability before any deployment.
-- Publishing a non-prerelease GitHub Release triggers deployment. The version tag must point to current main, and pinned base-ci must prove the exact main CI run and `quality / Z1: Gate` before building and deploying image digests. A push alone never deploys. Do not publish, deploy, configure GitHub environments or alter production without explicit authorization.
+Bilingual Vite/React site with a Node HTTP API and DuckDB querying a separately mounted Hacker News Parquet archive (application code: MIT; dataset: separately licensed).
+Docs: [README.md](README.md) · [Data Layout](data/README.md) · [Retrospective](Retrospective.md)
 
 ## Commands
 
-Run in the repository root with Bun 1.4.4 and Node 26.13.0. On this machine use the npm mirror in [README.md](README.md). Browser tests require Playwright Chromium or `CHROME_PATH` pointing at an existing Chromium/Chrome executable.
+Run from root with `.mise.toml` versions (Bun `1.4.4`, Node `26.13.0`). Browser tests require Playwright Chromium or `CHROME_PATH` pointing to an existing Chromium/Chrome executable.
 
 ```sh
-bun run hooks:install
-bun run check
-bun run workflow:lint
-bun run test:coverage
-bun run test:deployment
-bun run test:integration
-bun run test:browser
-BUN_CONFIG_REGISTRY=https://mirrors.tencent.com/npm/ bun run test:container
-bun run build
+bun install --frozen-lockfile
+bun run hooks:install      # configure core.hooksPath=.githooks
+bun run dev                # https://hntoday.dev.hexly.ai -> 127.0.0.1:7065
+bun run check              # S1 typecheck + S2 lint (Biome 0 warnings + focused/skipped-test guard)
+bun run workflow:lint      # S3 actionlint + immutable 40-char external action SHAs
+bun run test:coverage      # L1 unit coverage (>=95% x4 on core 4 files)
+bun run test:deployment    # L1 release-proof & deployment-verifier unit tests
+bun run test:integration   # L3 build + isolated prod server & generated Parquet on ephemeral port
+bun run test:browser       # L4 build + isolated prod server, mocked UI & real Parquet on :27065
+bun run test:container     # Docker smoke: unique image, read-only fixture, revision/data check, cleanup
+bun run build              # B1 Vite client + production server
 git diff --check
 ```
 
-The `test:integration` and `test:browser` commands build the application and start isolated production-server processes. The browser suite includes both deterministic mocked UI cases and a real HTTP/Parquet journey. The container smoke builds a unique local image, mounts a synthetic archive read-only, verifies revision and data, and removes its own image, container and fixture.
+Pass `BUN_CONFIG_REGISTRY` when running `bun run test:container` to forward `NPM_REGISTRY` into the Docker build.
 
-## Quality Slots
+## Invariants
 
-System1 quality definitions come from the `system1-quality` skill; this repo uses native CI with base-ci v2026.15 (`777bbe4f9bacab8a91d8c01974480a6ee23d28e0`). Local hooks are installed with `bun run hooks:install`; the first actual GitHub CI run has not yet been observed.
+- **Version authority**: Root `package.json` is authoritative; the site and `/api/live` derive their version from it. Keep `CHANGELOG.md` and release tags synchronized.
+- **Archive boundaries**: Exclude `data/` and `results/` from Git and Docker contexts (only `data/README.md` is tracked). Never read the dev archive in tests; use generated Parquet fixtures in marked temp dirs.
+- **Data semantics**: Present snapshot scores, not historical front-page rankings. Keep user-generated story titles untranslated. Dates and rankings are UTC.
+- **UI & MVVM**: Preserve prototype visuals, motion, reduced-motion support, automatic language detection, and direct language toggle. Keep views, viewmodels, and API client separate.
+- **Test isolation**: Tests own their temp files and processes and never reuse an existing server. Browser E2E uses `:27065`, integration binds an ephemeral loopback port, and dev stays on `:7065`.
+- **Release gate**: Only a non-prerelease GitHub Release triggers `.github/workflows/release.yml` (push never deploys). Tag must match `main` and pinned `base-ci` must prove `quality / Z1: Gate` before deploying digests.
+- **Production boundary**: Production is not deployed yet; confirm host and port availability first. Never publish releases, deploy, configure GitHub environments, or alter production without explicit authorization.
+- **Fail-closed gates**: Do not bypass hooks. Missing tools, failed checks, empty runs, timeouts, scanner findings, incomplete data, CI errors, or missing deployment evidence must fail the gate—never report as success.
 
-| Slot | Coverage and stage | Local evidence / limits |
+## Quality & Local Gates
+
+Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in [.github/workflows/quality-slots.yml](.github/workflows/quality-slots.yml) (`quality / Z1: Gate` required on `main`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
+
+- **Exceptions**: `L2 Runtime` is `N/A` (Node/DuckDB verified in `L3`); `P1 Package` is `N/A` (private app). `Z1` (`scripts/quality/validate-slots.ts`) also requires blocking `Container image E2E` on the matching SHA.
+- **L1 coverage scope**: `>=95%` x4 covers only `src/calendar.ts`, `src/i18n.ts`, `server/api.ts`, and `server/archive.ts`; gate/deployment tests, HTTP entrypoint, UI, and other scripts are outside this denominator.
+- **Local hooks**: Install via `bun run hooks:install` (`.githooks/`). Neither hook reads the worktree; requires Bun `1.4.4`, Node `26.13.0`, Gitleaks `8.30.1`, OSV Scanner `>=2.5` (push), and `actionlint` (workflows).
+- **Pre-commit** (`60s` timeout): Exports staged Git index to a temp dir, installs frozen deps there, and runs `G1/S1/S2/L1` plus `S3` when `.github/workflows/` changes.
+- **Pre-push** (`300s` total): Reads all pushed refs, exports each exact commit to a separate temp dir, scans its `G1` history range, and runs `G2/S1/S2/L1/B1/L3/L4`.
+
+## Resources & Isolation
+
+| Lane | Endpoint / State | Boundary |
 | --- | --- | --- |
-| S1 Types | TypeScript; pre-commit, pre-push, CI | `bun run typecheck` |
-| S2 Lint | Biome zero warnings and focused/skipped-test guard; pre-commit, pre-push, CI | `bun run lint` |
-| S3 Workflow | actionlint and immutable external action SHAs; pre-commit when workflows change, CI | `bun run workflow:lint`; local actionlint 1.7.12 |
-| G1 Secrets | Git index / pushed commit range / CI checkout | Gitleaks 8.30.1; staged fake-secret injection tested in an isolated repo |
-| G2 Dependencies | `bun.lock`; pre-push and CI | OSV Scanner >=2.5 locally, base-ci pinned scanner in CI |
-| B1 Build | Vite client and production server; pre-push and CI | `bun run build` |
-| L1 Unit | Calendar, language, API and archive-query coverage, 95% each for statements, branches, functions and lines; pre-commit, pre-push, CI | `bun run test:coverage` reports 100% x4 for **only `src/calendar.ts`, `src/i18n.ts`, `server/api.ts` and `server/archive.ts`**. Gate validation and deployment-verifier tests run without coverage thresholds. The HTTP entrypoint, UI and other scripts are not included in this coverage denominator. |
-| L2 Runtime | N/A | No separate platform-binding runtime suite; Node/DuckDB behavior is tested via L3. |
-| L3 Integration | Real production HTTP and generated Parquet; pre-push and CI | `bun run test:integration` |
-| L4 E2E | Chromium UI journeys, including real production API/Parquet; pre-push and CI | `bun run test:browser` |
-| P1 Package | N/A | Private application; no published package. |
-| Z1 Gate | Validates all enabled results and their matching SHA; CI | `scripts/quality/validate-slots.ts`, with failure-injection unit tests; not yet observed on GitHub. |
+| Dev | `127.0.0.1:7065` (`https://hntoday.dev.hexly.ai`), local `data/` | Daily local archive; preserve running server |
+| Tests | `127.0.0.1:27065` (E2E), ephemeral loopback (L3/Docker), marked temp dirs | Owned synthetic Parquet fixtures & processes; auto-cleaned |
+| Prod | Planned `https://hntoday.hexly.ai`, `deploy/compose.yaml` (`127.0.0.1:17065`, `/data:ro`) | Not yet deployed; explicit authorization required before any change |
 
-A separate blocking `Container image E2E` CI job builds the Docker image and exercises it with a read-only synthetic archive; Z1 requires its success and matching SHA. Local pre-commit checks an exported Git index in a temporary directory, installs the frozen dependencies there and runs G1/S1/S2/L1 plus S3 for workflow changes (60s hard timeout). Pre-push reads all pushed refs, exports each exact commit to a separate temporary directory, checks the corresponding G1 history range and runs G2/S1/S2/L1/B1/L3/L4 (300s for the entire push). Neither gate reads the worktree as its test source. Local and isolated hook trials on this machine measured roughly 7–21s pre-commit and 23–70s pre-push; CI and remote deployment timings remain unmeasured.
+## Retrospective
 
-Do not bypass or disable hooks. Missing tools, failed checks, empty test runs and timeouts must fail the relevant gate. Scanner findings, incomplete data, CI errors or missing deployment evidence must not be reported as success.
+Record incident narratives in [Retrospective.md](Retrospective.md); promote recurring project constraints to `Invariants` above and enforceable safeguards to tests or hooks.
