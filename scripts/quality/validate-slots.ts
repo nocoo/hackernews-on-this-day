@@ -12,9 +12,9 @@ const implemented = [
   "l1-unit",
   "l3-integration",
   "l4-e2e",
-  "container-image-e2e",
+  "p1-package",
 ] as const;
-const notApplicable = ["l2-runtime", "p1-package"] as const;
+const notApplicable = ["l2-runtime"] as const;
 
 type Result = { result?: string; outputs?: { "tested-sha"?: string } };
 
@@ -43,7 +43,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     if (errors.length) throw new Error(errors.join("; "));
     if (!process.env.GITHUB_OUTPUT) throw new Error("Missing GITHUB_OUTPUT");
     appendFileSync(process.env.GITHUB_OUTPUT, `tested-sha=${expected}\n`);
-    console.log(`All required slots passed for ${expected}; L2 Runtime and P1 Package are not applicable.`);
+    console.log(`All required slots passed for ${expected}; L2 Runtime is not applicable.`);
   } catch (error) {
     console.error(error instanceof Error ? error.message : "Slot validation failed");
     process.exitCode = 1;

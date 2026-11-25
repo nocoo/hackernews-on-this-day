@@ -245,8 +245,8 @@ jobs:
         if: always()
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  container-image-e2e:
-    name: "Container image E2E"
+  p1-package:
+    name: "P1: Package"
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:
@@ -269,13 +269,6 @@ jobs:
         if: always()
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-  p1-package:
-    name: "P1: Package"
-    if: ${{ vars.ENABLE_P1_PACKAGE == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - run: exit 1
-
   z1-gate:
     name: "Z1: Gate"
     if: always()
@@ -291,7 +284,6 @@ jobs:
       - l3-integration
       - l4-e2e
       - p1-package
-      - container-image-e2e
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:

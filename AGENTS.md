@@ -39,7 +39,7 @@ Pass `BUN_CONFIG_REGISTRY` when running `bun run test:container` to forward `NPM
 
 Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in [.github/workflows/quality-slots.yml](.github/workflows/quality-slots.yml) (`quality / Z1: Gate` required on `main`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
-- **Exceptions**: `L2 Runtime` is `N/A` (Node/DuckDB verified in `L3`); `P1 Package` is `N/A` (private app). `Z1` (`scripts/quality/validate-slots.ts`) also requires blocking `Container image E2E` on the matching SHA.
+- **Exceptions**: `L2 Runtime` is `N/A` (Node/DuckDB verified in `L3`). `P1 Package` verifies the Docker container image via `bun run test:container`, aggregated by `Z1` (`scripts/quality/validate-slots.ts`) on the matching SHA.
 - **L1 coverage scope**: `>=95%` x4 covers only `src/calendar.ts`, `src/i18n.ts`, `server/api.ts`, and `server/archive.ts`; gate/deployment tests, HTTP entrypoint, UI, and other scripts are outside this denominator.
 - **Local hooks**: Install via `bun run hooks:install` (`.githooks/`). Neither hook reads the worktree; requires Bun `1.4.4`, Node `26.13.0`, Gitleaks `8.30.1`, OSV Scanner `>=2.5` (push), and `actionlint` (workflows).
 - **Pre-commit** (`60s` timeout): Exports staged Git index to a temp dir, installs frozen deps there, and runs `G1/S1/S2/L1` plus `S3` when `.github/workflows/` changes.

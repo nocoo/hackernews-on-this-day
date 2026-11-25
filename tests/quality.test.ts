@@ -18,9 +18,9 @@ const required = [
   "l1-unit",
   "l3-integration",
   "l4-e2e",
-  "container-image-e2e",
+  "p1-package",
 ];
-const absent = ["l2-runtime", "p1-package"];
+const absent = ["l2-runtime"];
 function results() {
   return Object.fromEntries([
     ...required.map((id) => [id, { result: "success", outputs: { "tested-sha": sha } }]),
