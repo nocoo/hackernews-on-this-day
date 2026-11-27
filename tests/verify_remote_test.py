@@ -26,7 +26,7 @@ class FixedDateTime(datetime.datetime):
 
 
 def remote_code():
-    source = Path(".github/workflows/release.yml").read_text()
+    source = Path(".github/workflows/pipeline.yml").read_text()
     fragment = source.split("python3 - <<'PY'\n", 1)[1].split("\n        PY\n", 1)[0]
     return compile(textwrap.dedent(fragment), "<remote-verify>", "exec")
 

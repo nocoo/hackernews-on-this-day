@@ -4,8 +4,9 @@ import { chmod } from "node:fs/promises";
 import packageInfo from "../package.json" with { type: "json" };
 import { createArchiveFixture } from "../tests/fixtures/archive";
 
+const providedTag = process.argv[2]?.trim();
 const archive = await createArchiveFixture();
-const tag = `hntoday-test:${randomUUID()}`;
+const tag = providedTag || `hntoday-test:${randomUUID()}`;
 const name = `hntoday-test-${randomUUID()}`;
 const network = `hntoday-test-${randomUUID()}`;
 const revision = process.env.GITHUB_SHA ?? "a".repeat(40);
@@ -20,11 +21,15 @@ let failed = false;
 try {
   if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error("Invalid test revision");
   await chmod(archive.directory, 0o755);
-  const build = ["build", "--tag", tag];
-  if (process.env.BUN_CONFIG_REGISTRY)
-    build.push("--build-arg", `NPM_REGISTRY=${process.env.BUN_CONFIG_REGISTRY}`);
-  execFileSync("docker", [...build, "."], { stdio: "inherit", timeout: 600_000 });
-  built = true;
+  if (providedTag) {
+    docker(["image", "inspect", tag]);
+  } else {
+    const build = ["build", "--tag", tag];
+    if (process.env.BUN_CONFIG_REGISTRY)
+      build.push("--build-arg", `NPM_REGISTRY=${process.env.BUN_CONFIG_REGISTRY}`);
+    execFileSync("docker", [...build, "."], { stdio: "inherit", timeout: 600_000 });
+    built = true;
+  }
   docker(["run", "--rm", "--entrypoint", "sh", tag, "-c", "test ! -e /data"]);
   docker(["network", "create", network]);
   networkCreated = true;

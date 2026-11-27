@@ -14,7 +14,7 @@ bun run dev                # https://hntoday.dev.hexly.ai -> 127.0.0.1:7065
 bun run check              # S1 typecheck + S2 lint (Biome 0 warnings + focused/skipped-test guard)
 bun run workflow:lint      # S3 actionlint + immutable 40-char external action SHAs
 bun run test:coverage      # L1 unit coverage (>=95% x4 on core 4 files)
-bun run test:deployment    # L1 release-proof & deployment-verifier unit tests
+bun run test:deployment    # L1 deployment-verifier & remote-verify unit tests
 bun run test:integration   # L3 build + isolated prod server & generated Parquet on ephemeral port
 bun run test:browser       # L4 build + isolated prod server, mocked UI & real Parquet on :27065
 bun run test:container     # Docker smoke: unique image, read-only fixture, revision/data check, cleanup
@@ -31,15 +31,15 @@ Pass `BUN_CONFIG_REGISTRY` when running `bun run test:container` to forward `NPM
 - **Data semantics**: Present snapshot scores, not historical front-page rankings. Keep user-generated story titles untranslated. Dates and rankings are UTC.
 - **UI & MVVM**: Preserve prototype visuals, motion, reduced-motion support, automatic language detection, and direct language toggle. Keep views, viewmodels, and API client separate.
 - **Test isolation**: Tests own their temp files and processes and never reuse an existing server. Browser E2E uses `:27065`, integration binds an ephemeral loopback port, and dev stays on `:7065`.
-- **Release gate**: Only a non-prerelease GitHub Release triggers `.github/workflows/release.yml` (push never deploys). Tag must match `main` and pinned `base-ci` must prove `quality / Z1: Gate` before deploying digests.
-- **Production boundary**: Production is not deployed yet; confirm host and port availability first. Never publish releases, deploy, configure GitHub environments, or alter production without explicit authorization.
+- **Deployment pipeline**: [.github/workflows/pipeline.yml](.github/workflows/pipeline.yml) runs `quality` ([quality-slots.yml](.github/workflows/quality-slots.yml)) first and gates `deploy` (`D1`–`D5` via pinned `nocoo/base-ci` `deploy-docker.yml`) on `main` push or `workflow_dispatch` with `deploy: true` (PRs never deploy).
+- **Production boundary**: Confirm host and port availability before changing production (`deploy/compose.yaml`, `127.0.0.1:17065`). Never alter production or GitHub environments without explicit authorization.
 - **Fail-closed gates**: Do not bypass hooks. Missing tools, failed checks, empty runs, timeouts, scanner findings, incomplete data, CI errors, or missing deployment evidence must fail the gate—never report as success.
 
 ## Quality & Local Gates
 
-Follows `system1-quality`; CI slot definitions and pinned `base-ci` revision live in [.github/workflows/quality-slots.yml](.github/workflows/quality-slots.yml) (`quality / Z1: Gate` required on `main`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
+Follows `system1-quality`; CI/CD orchestration lives in [.github/workflows/pipeline.yml](.github/workflows/pipeline.yml) and slot definitions + pinned `base-ci` revision live in [.github/workflows/quality-slots.yml](.github/workflows/quality-slots.yml) (`quality / Z1: Gate` required on `main`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
-- **Exceptions**: `L2 Runtime` is `N/A` (Node/DuckDB verified in `L3`). `P1 Package` verifies the Docker container image via `bun run test:container`, aggregated by `Z1` (`nocoo/base-ci/.github/actions/z1-gate`) on the matching SHA.
+- **Exceptions**: `L2 Runtime` is `N/A` (Node/DuckDB verified in `L3`). `P1 Package` builds the Docker image via BuildKit (`scope=hackernews-on-this-day-web`, shared with CD `D2`) and verifies it via `bun run test:container`, aggregated by `Z1` (`nocoo/base-ci/.github/actions/z1-gate`) on the matching SHA.
 - **L1 coverage scope**: `>=95%` x4 covers only `src/calendar.ts`, `src/i18n.ts`, `server/api.ts`, and `server/archive.ts`; gate/deployment tests, HTTP entrypoint, UI, and other scripts are outside this denominator.
 - **Local hooks**: Install via `bun run hooks:install` (`.githooks/`). Neither hook reads the worktree; requires Bun `1.4.4`, Node `26.13.0`, Gitleaks `8.30.1`, OSV Scanner `>=2.5` (push), and `actionlint` (workflows).
 - **Pre-commit** (`60s` timeout): Exports staged Git index to a temp dir, installs frozen deps there, and runs `G1/S1/S2/L1` plus `S3` when `.github/workflows/` changes.
