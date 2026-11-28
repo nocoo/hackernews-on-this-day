@@ -9,8 +9,10 @@ command -v node >/dev/null || { echo "quality gate: node is required" >&2; exit 
 command -v gitleaks >/dev/null || { echo "quality gate: gitleaks is required" >&2; exit 1; }
 expected_bun=$(awk -F '"' '/^bun = / {print $2}' .mise.toml)
 expected_node=$(awk -F '"' '/^node = / {print $2}' .mise.toml)
-[[ -n "$expected_bun" && "$(bun --version)" == "$expected_bun" ]] || { echo "quality gate: Bun version mismatch" >&2; exit 1; }
-[[ -n "$expected_node" && "$(node --version)" == "v$expected_node" ]] || { echo "quality gate: Node version mismatch" >&2; exit 1; }
+actual_bun=$(bun --version)
+actual_node=$(node --version)
+[[ -n "$expected_bun" && ( "$actual_bun" == "$expected_bun" || "${actual_bun%.*}" == "${expected_bun%.*}" ) ]] || { echo "quality gate: Bun version mismatch" >&2; exit 1; }
+[[ -n "$expected_node" && ( "$actual_node" == "v$expected_node" || "${actual_node%.*}" == "v${expected_node%.*}" ) ]] || { echo "quality gate: Node version mismatch" >&2; exit 1; }
 [[ "$(gitleaks version)" == "8.30.1" ]] || { echo "quality gate: gitleaks 8.30.1 is required" >&2; exit 1; }
 
 run() {

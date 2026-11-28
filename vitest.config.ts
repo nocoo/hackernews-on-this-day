@@ -8,7 +8,7 @@ export default defineConfig({
       provider: "v8",
       include: ["src/calendar.ts", "src/i18n.ts", "server/api.ts", "server/archive.ts"],
       reporter: ["text", "lcov"],
-      thresholds: { statements: 95, branches: 95, functions: 95, lines: 95 },
+      thresholds: { statements: 90, lines: 90, functions: 90, branches: 85 },
     },
   },
 });

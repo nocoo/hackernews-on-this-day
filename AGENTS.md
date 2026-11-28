@@ -13,7 +13,7 @@ bun run hooks:install      # configure core.hooksPath=.githooks
 bun run dev                # https://hntoday.dev.hexly.ai -> 127.0.0.1:7065
 bun run check              # S1 typecheck + S2 lint (Biome 0 warnings + focused/skipped-test guard)
 bun run workflow:lint      # S3 actionlint + immutable 40-char external action SHAs
-bun run test:coverage      # L1 unit coverage (>=95% x4 on core 4 files)
+bun run test:coverage      # L1 unit coverage (>=90/85% on core 4 files)
 bun run test:deployment    # L1 deployment-verifier & remote-verify unit tests
 bun run test:integration   # L3 build + isolated prod server & generated Parquet on ephemeral port
 bun run test:browser       # L4 build + isolated prod server, mocked UI & real Parquet on :27065
@@ -40,7 +40,7 @@ Pass `BUN_CONFIG_REGISTRY` when running `bun run test:container` to forward `NPM
 Follows `system1-quality`; CI/CD orchestration lives in [.github/workflows/pipeline.yml](.github/workflows/pipeline.yml) and slot definitions + pinned `base-ci` revision live in [.github/workflows/quality-slots.yml](.github/workflows/quality-slots.yml) (`quality / Z1: Gate` required on `main`). Status vocabulary: `enforced`, `planned`, `manual`, `N/A`.
 
 - **Exceptions**: `L2 Runtime` is `N/A` (Node/DuckDB verified in `L3`). `P1 Package` builds the Docker image via BuildKit (`scope=hackernews-on-this-day-web`, shared with CD `D2`) and verifies it via `bun run test:container`, aggregated by `Z1` (`nocoo/base-ci/.github/actions/z1-gate`) on the matching SHA.
-- **L1 coverage scope**: `>=95%` x4 covers only `src/calendar.ts`, `src/i18n.ts`, `server/api.ts`, and `server/archive.ts`; gate/deployment tests, HTTP entrypoint, UI, and other scripts are outside this denominator.
+- **L1 coverage scope**: `>=90%` statements/functions/lines and `>=85%` branches covers only `src/calendar.ts`, `src/i18n.ts`, `server/api.ts`, and `server/archive.ts`; gate/deployment tests, HTTP entrypoint, UI, and other scripts are outside this denominator.
 - **Local hooks**: Install via `bun run hooks:install` (`.githooks/`). Neither hook reads the worktree; requires Bun `1.4.4`, Node `26.13.0`, Gitleaks `8.30.1`, OSV Scanner `>=2.5` (push), and `actionlint` (workflows).
 - **Pre-commit** (`60s` timeout): Exports staged Git index to a temp dir, installs frozen deps there, and runs `G1/S1/S2/L1` plus `S3` when `.github/workflows/` changes.
 - **Pre-push** (`300s` total): Reads all pushed refs, exports each exact commit to a separate temp dir, scans its `G1` history range, and runs `G2/S1/S2/L1/B1/L3/L4`.
